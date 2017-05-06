@@ -1,0 +1,17 @@
+{
+  "name": "magnets",
+  "version": "0.1.0",
+  "description": "Automatically download new episodes of tv-shows and animes using magnet links",
+  "main": "app.js",
+  "dependencies": {
+    "body-parser": "*",
+    "bootstrap": "*",
+    "cheerio": "^0.22.0",
+    "compression": "*",
+    "cookie-parser": "*",
+    "express": "*",
+    "mongoose": "*",
+    "mongoosefromclass": "*",
+    "sha1": "*"
+  }
+}
