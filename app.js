@@ -28,7 +28,8 @@ var classesToLoad = [
 var schemasToLoad = [
 	"Session",
 	"User",
-	"ListAnime"
+	"ListAnime",
+	"MagnetsAnime"
 ];
 
 for(let name of classesToLoad) {
@@ -62,13 +63,31 @@ new Loginhandler(app);
 
 app.use(express.static('www'));
 
-global.getHtml = function (cb, options) {
-	http.request(options, function(response) {
-		let content = "";
-		response.setEncoding("utf8");
-		response.on("data", (chunk) => { content += chunk; });
-		response.on("end", () => cb(content));
-	}).end();
+global.getHtml = function (cb, options, errCb) {
+
+	function doRequest(obj, func, errCb) {
+		http.request(options, function(response) {
+			let content = "";
+			response.setEncoding("utf8");
+			response.on("error", (err) => console.log(err));
+			response.on("data", (chunk) => { content += chunk; });
+			response.on("end", () => {
+				if(response.statusCode == 200) {
+					cb(content);
+				} else if (response.statusCode == 301 && numRedirectsLeft-- > 0) {
+					options.path = response.headers.location;
+					console.log('redirected to', options.path);
+					doRequest(cb, options);
+				} else {
+					console.log('HTTP FAILED', response.statusCode);
+					errCb && errCb();
+				}
+			});
+		}).end();
+	}
+
+	let numRedirectsLeft = 3;
+	doRequest(cb, options, errCb);
 }
 
 app.get('*',(req, res)=>{
@@ -86,8 +105,33 @@ function onceConnected() {
     });
 
 	var anime = new HorribleSubs();
-	anime.downloadShowList().then((showsArr) => {
-		console.log('Showlist ready');
-	}).catch((err) => { console.log(err); });
+
+	// console.time('Showlist ready');
+	// anime.downloadShowlist().then((showsArr) => {
+	// 	console.timeEnd('Showlist ready');
+
+	// },(err) => {
+	// 	console.log(err);
+	// 	console.timeEnd('Showlist ready');
+	// });
+
+		// console.time('IDs ready');
+		// anime.downloadShowlistIds().then(() => {
+		// 	console.timeEnd('IDs ready');
+
+		// }, (err) => {
+		// 	console.log('reject', err);
+		// 	console.timeEnd('IDs ready');
+		// });
+
+			// console.time('magnets');
+			// anime.downloadMagnets().then(() => {
+			// 	console.log('magnets ready');
+			// 	console.timeEnd('magnets');
+			// }, (err) => {
+			// 	console.log('reject', err);
+			// 	console.timeEnd('magnets');
+			// });
+
 }
 
