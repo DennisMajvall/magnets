@@ -3,9 +3,8 @@ var bodyparser = require('body-parser');
 var compression = require('compression');
 var cookieparser = require('cookie-parser');
 var express = require('express');
-var HorribleSubs = require('./modules/horriblesubs');
 var http = require('http')
-var fs = require('fs');
+var util = require('util');
 var mongoose = require('mongoose');
 var sha1 = require('sha1');
 require('mongoosefromclass')(mongoose);
@@ -19,24 +18,25 @@ global.passwordSalt = "salt_hidden_on_github";
 mongoose.Promise = Promise;
 
 // Load classes, make them global and then convert selected ones to modules
-var classesToLoad = [
+var modulesToLoad = [
 	"Sessionhandler",
 	"Loginhandler",
 	"Restrouter",
 	"HorribleSubs"
 ];
-var schemasToLoad = [
-	"Session",
+var schemas = [ "Session" ];
+var restSchemas = [
 	"User",
 	"ListAnime",
-	"MagnetsAnime"
+	"MagnetsAnime",
+	"ConsoleLog"
 ];
 
-for(let name of classesToLoad) {
+for(let name of modulesToLoad) {
 	let pathName = './modules/' + name.toLowerCase();
 	global[name] = require(pathName);
 }
-for(let name of schemasToLoad) {
+for(let name of [...schemas, ...restSchemas]) {
 	let pathName = './modules/schemas/' + name.toLowerCase();
 	global[name] = mongoose.fromClass(require(pathName));
 }
@@ -58,7 +58,9 @@ app.use((req, res, next)=>{
 });
 
 // Create restroutes to selected mongoose models
-new Restrouter(app, User);
+for(let name of restSchemas) {
+	new Restrouter(app, global[name]);
+}
 new Loginhandler(app);
 
 app.use(express.static('www'));
@@ -79,7 +81,7 @@ global.getHtml = function (cb, options, errCb) {
 					console.log('redirected to', options.path);
 					doRequest(cb, options);
 				} else {
-					console.log('HTTP FAILED', response.statusCode);
+					console.log('HTTP statusCode:', response.statusCode);
 					errCb && errCb();
 				}
 			});
@@ -94,70 +96,35 @@ app.get('*',(req, res)=>{
 	res.sendFile(__dirname + '/www/index.html');
 });
 
+function monkeyPatchConsoleLog(){
+	var original = console.log;
+	console.log = function dbConsoleLog() {
+		original.apply(console, arguments);
+		new ConsoleLog({ text: util.inspect([...arguments]) }).save();
+	}
+}
+monkeyPatchConsoleLog();
+
 // Connect to mongoDB then start the express server
 mongoose.connect('mongodb://127.0.0.1/magnets');
 mongoose.connection.once('open', onceConnected);
 mongoose.connection.on('error', () => console.log('Error connecting to mongoDB'));
 
 function onceConnected() {
-
 	var anime = new HorribleSubs();
+
 	anime.loadDb()
-	.then(()=> { return anime.downloadMagnets() })
+	// .then(()=> { return anime.downloadMagnets() })
 	.then(()=> { console.log('HorribleSubs loaded'); })
+	.then(() => {
+		console.log('HorribleSubs RSS enabled');
+		anime.readRSS();
+		setInterval(() => { anime.readRSS(); }, 600000);
+	})
 	.then(() => {
 		app.listen(3000, function() {
 			console.log('Express app listening on port 3000');
     });
 	});
-	// MagnetsAnime.find({}).exec()
-	// .then((data)=> {
-	// 	console.log('found 1');
-	// })
-	// .then(() => {
-	// 	return ListAnime.find({}).exec()
-	// 	.then((data)=> {
-	// 		console.log('found 2');
-	// 	})
-	// })
-	// .then(() => {
-	// 	return MagnetsAnime.find({}).exec()
-	// 	.then((data)=> {
-	// 		console.log('found 3');
-	// 	})
-	// })
-	// .then(() => {
-	// 	return ListAnime.find({}).exec()
-	// 	.then((data)=> {
-	// 		console.log('found 4');
-	// 	})
-	// })
-
-	// console.time('Showlist ready');
-	// anime.downloadShowlist().then((showsArr) => {
-	// 	console.timeEnd('Showlist ready');
-
-	// },(err) => {
-	// 	console.log(err);
-	// 	console.timeEnd('Showlist ready');
-	// });
-
-		// console.time('IDs ready');
-		// anime.downloadShowlistIds().then(() => {
-		// 	console.timeEnd('IDs ready');
-
-		// }, (err) => {
-		// 	console.log('reject', err);
-		// 	console.timeEnd('IDs ready');
-		// });
-
-			// console.time('magnets');
-			// anime.downloadMagnets().then(() => {
-			// 	console.log('magnets ready');
-			// 	console.timeEnd('magnets');
-			// }, (err) => {
-			// 	console.log('reject', err);
-			// 	console.timeEnd('magnets');
-			// });
 }
 

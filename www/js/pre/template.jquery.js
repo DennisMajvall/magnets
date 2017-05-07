@@ -51,7 +51,7 @@
 
     // Template include with scope object
     x = x.replace(
-      /\[template\s*([a-zA-Z0-9-_.$]*)\s*,([^\]]*)\]/g,
+      /\[template\s*([a-zA-Z0-9-_.$]*)\s*,\s*([^\]]*)\]/g,
       '${_template((t)=>{' +
       'var scope = t;' +
       'for(var i in t){eval("var " + i + "=t[i]");}' +
@@ -89,25 +89,20 @@
 	$.loadTemplates = (
 		fileNames,
 		callback,
-		folderPath = "templates",
+		folderPath = "/templates",
 		extension = "html"
 	) => {
 		let co = 0;
 		fileNames.forEach((tname)=>{
 			$.get(folderPath + '/' + tname + '.' + extension,(data)=>{
 				co++;
-				templates[nameWithoutFolder(tname)] = replacements(data);
+				templates[tname.split('/').pop()] = replacements(data);
 				if(co == fileNames.length){
 					callback();
 				}
 			});
 		});
 	};
-
-	function nameWithoutFolder(name) {
-		let names = name.split('/');
-		return names[names.length - 1];
-	}
 
   var ifscopes = [];
 
@@ -155,10 +150,7 @@
       eval("var " + i + '=t[i]');
     }
     var tliteral;
-	eval('tliteral = `' + templates[templateName] + '`');
-
-	// Run regexp again after applying a 2nd level of templates.
-	eval('tliteral = `' + replacements(tliteral) + '`');
+    eval('tliteral = `' + templates[templateName] + '`');
 
     // using it for output
     $(this).append(tliteral);

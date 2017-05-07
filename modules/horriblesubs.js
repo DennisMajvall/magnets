@@ -115,18 +115,14 @@ module.exports = class HorribleSubs {
 
   saveShowlistToDb(showlist){
 		return new Promise((resolve, reject) => {
-
 			let countdown = showlist.length;
 
-			ListAnime.remove({}, () => {
-				for (let show of showlist) {
-					let dbItem = new ListAnime(show);
-					dbItem.save((err) => {
-						if (err) reject('saveShowlistToDb failed to save');
-						if (--countdown == 0) resolve();
-					});
-				}
-			});
+			for (let show of showlist) {
+				let dbItem = new ListAnime(show);
+				dbItem.save((err) => {
+					if (--countdown == 0) resolve();
+				});
+			}
 		});
   }
 
@@ -223,7 +219,6 @@ module.exports = class HorribleSubs {
 							new MagnetsAnime(magnets).save((err) => tryResolve(err, show));
 						} else {
 							tryResolve('done');
-							// console.log('could not get magnets of:', show.title);
 						}
 					}
 					if (!arrayShows.length) {
@@ -245,4 +240,86 @@ module.exports = class HorribleSubs {
 		});
   }
 
+	parseRSS(input) {
+    let $ = cheerio.load(input);
+    input = $('item');
+
+		let result = {};
+
+    input.each((i, el) => {
+			let magnet = $(el).find('link')[0].next.data;
+			let titleText = $(el).find('title').text();
+
+			let title = titleText.match(/\]\s*(.*) - .*\[.*p\]/)[1];
+			let quality = titleText.match(/ - .*\[(\d*p)\]/)[1];
+
+			let episode = titleText.match(/-\s+(\d+\.?\d?)(\+)?(v\d?)?.*\[.*\]/);
+			if (!episode) { episode = ['error', 999]; }
+			episode = parseInt(episode[1], 10);
+
+			let qualityIndex = 'low';
+			if (quality == '720p') qualityIndex = 'medium'
+			else if (quality == '1080p') qualityIndex = 'high';
+
+			if (!result.hasOwnProperty(title)) {
+				result[title] = {
+					low: [],
+					medium: [],
+					high: []
+				};
+			}
+
+			result[title][qualityIndex].push({
+				episode: episode,
+				magnet: magnet
+			});
+		});
+
+    return result;
+  }
+
+	readRSS(){
+		let pushNonDuplicateMagnets = (oldArr, newArr) => {
+			for (let newMag of newArr){
+				let exists = false;
+				for (let mag of oldArr) { exists = exists || mag.episode == newMag.episode; }
+				if (!exists) { oldArr.push(newMag); }
+			}
+		}
+
+		let httpCallback = (data) => {
+			let parsed = this.parseRSS(data);
+			for (let showTitle in parsed){
+				let newMagnets = parsed[showTitle];
+
+				ListAnime.find({title: showTitle}).exec()
+				.then((show) => {
+					if (show && show.length) {
+						show = show[0];
+						newMagnets.showId = show.showId;
+						return MagnetsAnime.find({showId: show.showId}).exec();
+					}
+				})
+				.then((magnet) => {
+					if (magnet == undefined) return;
+
+					if (magnet.length) {
+						magnet = magnet[0];
+						pushNonDuplicateMagnets(magnet.low, newMagnets.low);
+						pushNonDuplicateMagnets(magnet.medium, newMagnets.medium);
+						pushNonDuplicateMagnets(magnet.high, newMagnets.high);
+						magnet.save((err, savedItem, numAffected) => {
+							numAffected && (console.log('RSS updated showId', newMagnets.showId));
+						});
+					} else {
+						new MagnetsAnime(newMagnets).save();
+						console.log('RSS added a new showId', newMagnets.showId);
+					}
+				});
+			}
+		}
+
+		let options = Object.assign({}, httpOptions, { path: "/rss.php?res=all" });
+		global.getHtml((data) => httpCallback(data), options);
+	}
 }

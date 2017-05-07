@@ -42,10 +42,24 @@ class Router {
 
 	actOnRoute(route) {
 		// find the function corresponding to the route
-		var func = routes[route] || routes['/'];
+		var func = routes[route];
+
+		if (!func) {
+			for (let r in routes){
+				let i = r.indexOf('*');
+
+				if (i > -1 && route.substr(0, i) === r.substr(0, i)) {
+					func = routes[r];
+					break;
+				}
+			}
+		}
+
+		if (!func)
+			routes['/']
 
 		if (func) {
-			$('.page-content').children().empty().off();
+			$('.page-content').empty().off();
 
 			func();
 		}

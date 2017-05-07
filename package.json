@@ -1,6 +1,6 @@
 {
   "name": "magnets",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "description": "Automatically download new episodes of tv-shows and animes using magnet links",
   "main": "app.js",
   "dependencies": {

@@ -1,3 +1,7 @@
-this is the indexpage <br>
-a ${text} b
-<!-- <iframe style="display:none" name="magnetframe"></iframe> -->
+<div class="row">
+	[repeat shows, show]
+	<div>
+		<a href="${show.slug}" _id="${show._id}">${show.title}</a>
+	</div>
+	[endrepeat]
+</div>
