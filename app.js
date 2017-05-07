@@ -100,11 +100,38 @@ mongoose.connection.once('open', onceConnected);
 mongoose.connection.on('error', () => console.log('Error connecting to mongoDB'));
 
 function onceConnected() {
-    app.listen(3000, function() {
-        console.log('Express app listening on port 3000');
-    });
 
 	var anime = new HorribleSubs();
+	anime.loadDb()
+	.then(()=> { return anime.downloadMagnets() })
+	.then(()=> { console.log('HorribleSubs loaded'); })
+	.then(() => {
+		app.listen(3000, function() {
+			console.log('Express app listening on port 3000');
+    });
+	});
+	// MagnetsAnime.find({}).exec()
+	// .then((data)=> {
+	// 	console.log('found 1');
+	// })
+	// .then(() => {
+	// 	return ListAnime.find({}).exec()
+	// 	.then((data)=> {
+	// 		console.log('found 2');
+	// 	})
+	// })
+	// .then(() => {
+	// 	return MagnetsAnime.find({}).exec()
+	// 	.then((data)=> {
+	// 		console.log('found 3');
+	// 	})
+	// })
+	// .then(() => {
+	// 	return ListAnime.find({}).exec()
+	// 	.then((data)=> {
+	// 		console.log('found 4');
+	// 	})
+	// })
 
 	// console.time('Showlist ready');
 	// anime.downloadShowlist().then((showsArr) => {
@@ -132,6 +159,5 @@ function onceConnected() {
 			// 	console.log('reject', err);
 			// 	console.timeEnd('magnets');
 			// });
-
 }
 

@@ -6,7 +6,6 @@ var REST = {};
   'Login'
 ].map(name => REST[name] = new RestEntity(name.toLowerCase()));
 
-// Global objects
 var user = {};
 var routes = {
   '/': () => { new IndexPage() },
@@ -14,7 +13,6 @@ var routes = {
 };
 
 (()=>{
-  // Put templates used by ALL ROLES here
   $.loadTemplates([
     'index-page',
     'loginpage'

@@ -3,15 +3,36 @@ var fs = require('fs');
 
 const timeoutMs = 10000;
 const timeoutIdsMs = timeoutMs * 2;
+const timeoutMagnetsMs = timeoutMs * 3;
 const httpOptions = {
 	host: "horriblesubs.info",
 	port: 80
 };
 
+function sleep(ms = 0) {
+  return new Promise(r => setTimeout(r, ms));
+}
+
 module.exports = class HorribleSubs {
 
   constructor(){
+		this.hasLoadedDb = false;
   }
+
+	async loadDb() {
+		if (!this.hasLoadedDb) {
+			return MagnetsAnime.find({}).exec()
+			.then((data)=> { this.magnetsAnime = data; })
+			.then(() => {
+				return ListAnime.find({}).exec()
+				.then((data)=> { this.listAnime = data; })
+			})
+			.then(() => {
+				this.hasLoadedDb = true;
+			})
+		}
+		Promise.resolve('Success');
+	}
 
   parseShowlist(input) {
     let $ = cheerio.load(input)
@@ -173,49 +194,55 @@ module.exports = class HorribleSubs {
     });
   }
 
-  downloadMagnets(){
-    return new Promise((resolve, reject) => {
-			let countdown = 0;
+  async downloadMagnets(){
+		return this.loadDb()
+		.then(() => {
 
-			let tryResolve = (err, show)=> {
-				if (!err)
-						console.log('saved:', show.title, 'c', countdown);
-				if (--countdown == 0) {
-					clearTimeout(timeoutHandle);
-					resolve();
-				}
-			};
+			let loadedIds = this.magnetsAnime.map(m => m.showId);
 
-			ListAnime.find({showId: { $gt: 0 } }, (err, arrayShows) => {
-				if (err) { console.log(err); return; }
-				countdown = arrayShows.length;
+			return new Promise((resolve, reject) => {
+				let countdown = 0;
 
-				let httpCallback = (show, data) => {
-					clearTimeout(timeoutHandle);
-					let magnets = this.parseMagnets(data, show.showId);
-					if (magnets) {
-						new MagnetsAnime(magnets).save((err) => tryResolve(err, show));
-					} else {
-						console.log('could not get magnets of:', show.title);
+				let tryResolve = (err, show)=> {
+					if (!err)
+							console.log('saved:', show.title, 'c', countdown);
+					if (--countdown == 0) {
+						clearTimeout(timeoutHandle);
+						resolve();
 					}
-				}
-				if (!arrayShows.length) {
-					resolve();
-				}
+				};
 
-				for (let show of arrayShows) {
-					let options = Object.assign({}, httpOptions, {
-						path: "/lib/getshows.php?type=show&nextid=0&showid=" + show.showId
-					});
-					global.getHtml((data) => httpCallback(show, data), options);
-				}
+				ListAnime.find({showId: { $gt: 0, $nin: loadedIds} }, (err, arrayShows) => {
+					if (err) { console.log(err); return; }
+					countdown = arrayShows.length;
+
+					let httpCallback = (show, data) => {
+						clearTimeout(timeoutHandle);
+						let magnets = this.parseMagnets(data, show.showId);
+						if (magnets) {
+							new MagnetsAnime(magnets).save((err) => tryResolve(err, show));
+						} else {
+							tryResolve('done');
+							// console.log('could not get magnets of:', show.title);
+						}
+					}
+					if (!arrayShows.length) {
+						resolve();
+					}
+
+					for (let show of arrayShows) {
+						let options = Object.assign({}, httpOptions, {
+							path: "/lib/getshows.php?type=show&nextid=0&showid=" + show.showId
+						});
+						global.getHtml((data) => httpCallback(show, data), options);
+					}
+				});
+
+				let timeoutHandle = setTimeout(() => {
+					reject('timeout downloadMagnets, countdown: ' + countdown);
+				}, timeoutMagnetsMs);
 			});
-
-      let timeoutHandle = setTimeout(() => {
-        reject('timeout downloadMagnets, countdown: ' + countdown);
-			}, timeoutIdsMs * 5);
-
-    });
+		});
   }
 
 }
