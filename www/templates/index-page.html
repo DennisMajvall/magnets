@@ -1,7 +1,18 @@
-<div class="row">
-	[repeat shows, show]
-	<div>
-		<a href="${show.slug}" _id="${show._id}">${show.title}</a>
+<div class='container'>
+	<div class='row'>
+		<div class='col-xs-3'>
+			[repeat shows, show]
+			<div>
+				<a href="${show.slug}" _id="${show._id}">${show.title}</a>
+			</div>
+			[endrepeat]
+		</div>
+		<div class='col-xs-5'>
+			<p>MIDDLE PART</p>
+		</div>
+		<div class='col-xs-4'>
+			<p>RIGHT PART</p>
+		</div>
 	</div>
-	[endrepeat]
 </div>
+

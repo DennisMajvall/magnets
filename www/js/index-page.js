@@ -1,6 +1,6 @@
 class IndexPage {
 	constructor() {
-		REST.ListAnime.find('', (shows) => {
+		Rest.ListAnime.find('', (shows) => {
 			shows = shows.map(s => {
 				s.slug = s.slug.replace('/shows/', '/anime/');
 				return s;

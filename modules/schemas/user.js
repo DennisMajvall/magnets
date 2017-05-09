@@ -20,19 +20,12 @@ module.exports = class User {
 			}
 
 			// check that the user name does not exist
-			global[entity].findOne({ username: this.username }, (err, foundUser) => {
+			global.User.findOne({ username: this.username }, (err, foundUser) => {
 				if(!foundUser) {
 					next();
 					return;
 				}
-				var error = new Error(JSON.stringify({
-					errors: {
-						username: {
-							message: 'username `' + foundUser.username + '` is not unique: ',
-							name: "SaveError"
-						}
-					}
-				}));
+				var error = new Error('username `' + foundUser.username + '` is not unique');
 				next(error);
 			});
 		});

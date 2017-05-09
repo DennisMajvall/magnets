@@ -75,9 +75,8 @@ module.exports = class Restrouter {
 			instance.save((err, result) => {
 				if(err) {
 					if(err.constructor === Error) {
-					// mongoose should wrap the error
-					// (from pre save etc) but doesn't
-					err = JSON.parse((err+'').substring(6));
+						console.log(err);
+						err = (err+'').substr(7); // Remove "Error: "
 					}
 					this.json(res, err);
 					return;

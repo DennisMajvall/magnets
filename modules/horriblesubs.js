@@ -309,7 +309,7 @@ module.exports = class HorribleSubs {
 						pushNonDuplicateMagnets(magnet.medium, newMagnets.medium);
 						pushNonDuplicateMagnets(magnet.high, newMagnets.high);
 						magnet.save((err, savedItem, numAffected) => {
-							numAffected && (console.log('RSS updated showId', newMagnets.showId));
+							numAffected && (console.log('RSS updated:', showTitle, 'id:', newMagnets.showId));
 						});
 					} else {
 						new MagnetsAnime(newMagnets).save();

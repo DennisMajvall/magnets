@@ -1,25 +1,28 @@
-var REST = {};
+var Rest = {};
 [
   'ListAnime',
   'MagnetsAnime',
   'Login',
-	'ConsoleLog'
-].map(name => REST[name] = new RestEntity(name.toLowerCase()));
+  'User',
+  'ConsoleLog'
+].map(name => Rest[name] = new RestEntity(name.toLowerCase()));
 
 var user = {};
 var routes = {};
 routes = {
-	'/': () => { new IndexPage() },
-	'/login': () => { new LoginPage() },
-	'/anime/*': () => { new AnimePage(); }
+  '/': () => { new IndexPage() },
+  '/login': () => { new LoginPage() },
+  '/anime/*': () => { new AnimePage(); }
 };
 
 $.loadTemplates([
-	'index-page',
-	'anime-page',
-	'magnets'
+  'index-page',
+  'anime-page',
+  'header',
+  'magnets'
 ], function(){
-	$(()=>{
+  $(()=>{
+    new Header();
     new Router();
   })
 });
