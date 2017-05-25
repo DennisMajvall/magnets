@@ -1,7 +1,9 @@
 class Header {
-	constructor() {
+	constructor(callback) {
 		Rest.Login.find((res) => {
-			console.log('find', res);
+			user = res.user;
+			callback();
+
 			if (res.user == false){
 				this.loadTemplate({});
 				this.setPreviousUsernameIfEmpty();
@@ -22,7 +24,7 @@ class Header {
 
 	sendLogoutRequest(){
 		Rest.Login.delete((res) => {
-			console.log('logout', res);
+			user = false;
 			this.loadTemplate(res);
 			this.setPreviousUsernameIfEmpty();
 		});
@@ -40,7 +42,7 @@ class Header {
 		let body = this.getLoginDetails();
 		if (body) {
 			Rest.Login.create(body, (res) => {
-				console.log('login', res);
+				user = res.user;
 				this.loadTemplate(res);
 			});
 		}
@@ -50,14 +52,10 @@ class Header {
 		let body = this.getLoginDetails();
 		if (body) {
 			Rest.User.create(this.getLoginDetails(), (res) => {
-				console.log('create', res);
+				user = res.user;
 				this.loadTemplate(res);
 			});
 		}
-	}
-
-	onLogin(){
-		console.log('onLogin', res);
 	}
 
 	loadTemplate(res){

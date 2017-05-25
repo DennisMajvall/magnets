@@ -22,7 +22,10 @@ $.loadTemplates([
   'magnets'
 ], function(){
   $(()=>{
-    new Header();
-    new Router();
+    new Header(afterLogin);
+
+		function afterLogin(){
+			new Router();
+		}
   })
 });

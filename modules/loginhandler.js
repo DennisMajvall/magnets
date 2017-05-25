@@ -3,6 +3,7 @@ module.exports = class Loginhandler {
   constructor(expressApp){
     this.app = expressApp;
     this.get();
+    this.put();
     this.post();
     this.delete();
   }
@@ -11,16 +12,28 @@ module.exports = class Loginhandler {
   get(){
     // check if logged in
     this.app.get('/rest/login',(req,res)=>{
-      // not logged in
       if(!req.session.content.user){
         res.json({user:false, status: 'not logged in'});
         return;
       }
-      // logged in
       res.json({user:req.session.content.user, status: 'logged in'});
     });
   }
 
+	// Updates the session user with a lookup in the user table
+	put(){
+		this.app.put('/rest/login',(req,res)=>{
+      if(!req.session.content.user){
+        res.json({user:false, status: 'not logged in'});
+        return;
+      }
+
+      // if logged in - lookup the current version of the user
+			User.findOne({_id: req.session.content.user._id},(err,found)=>{
+				this.postReply(req,res,found);
+			});
+		});
+	}
 
   post(){
     // logging in
@@ -34,18 +47,11 @@ module.exports = class Loginhandler {
         return;
       }
       // trying to log in
-      var username = req.body.username;
-      var password = sha1(req.body.password + global.passwordSalt);
-      var foundUser, foundEntity;
-      // look for user in all different entitities
 			User.findOne({
-				username:username,
-				password:password
+				username: req.body.username,
+				password: sha1(req.body.password + global.passwordSalt)
 			},(err,found)=>{
-				if(found){
-					foundUser = found;
-				}
-				this.postReply(req,res,foundUser);
+				this.postReply(req,res,found);
 			});
     });
   }

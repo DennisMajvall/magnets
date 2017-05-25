@@ -5,19 +5,69 @@ class AnimePage {
 		if (param && param[param.length - 1] != '/') { param += '/'; }
 		param = param.replace('/anime/', '/shows/');
 
-		REST.ListAnime.find(`find/{ slug: "${param}" }`, (shows) => {
+		Rest.ListAnime.find(`find/{ slug: "${param}" }`, (shows) => {
 			for (let show of shows) {
-				$('.page-content').template('anime-page', show);
+				this.show = show;
 
-				REST.MagnetsAnime.find(`find/{ showId: ${show.showId}, _sort : { episode : -1 } } `, (magnets) => {
-					for (let magnet of magnets) {
-						$('magnets').template('magnets', magnet);
-					}
+				let subscriberStatus = user.animes.find((o)=>{ return o.showId == show.showId;});
+
+				$('.page-content').template('anime-page', {
+					show: show,
+					subscriberStatus: subscriberStatus
 				});
+
+				$('#update').on('click', (e)=>{this.updateEpisode(e)});
+				$('#subscribe').on('click', (e)=>{this.subscribe(e)});
+				$('#unsubscribe').on('click', (e)=>{this.unsubscribe(e)});
+
+				this.loadMagnets();
 			}
 		});
+	}
 
-		// var magnet = "magnet:?xt=urn:btih:GQDND2BZEH65B6S2CWGLCLRI44JZ2VS5&tr=udp://tracker.coppersurfer.tk:6969/announce&tr=udp://tracker.internetwarriors.net:1337/announce&tr=udp://tracker.leechers-paradise.org:6969/announce&tr=http://tracker.internetwarriors.net:1337/announce&tr=udp://tracker.opentrackr.org:1337/announce&tr=http://tracker.opentrackr.org:1337/announce&tr=udp://tracker.zer0day.to:1337/announce&tr=udp://tracker.pirateparty.gr:6969/announce&tr=http://explodie.org:6969/announce&tr=http://p4p.arenabg.com:1337/announce&tr=http://mgtracker.org:6969/announce";
-		// window.open(magnet, 'magnetframe');
+	loadMagnets(){
+		Rest.MagnetsAnime.find(`find/{ showId: ${this.show.showId} }`, (magnets) => {
+			for (let magnet of magnets) {
+				function sortEp(a,b) { return a.episode < b.episode; }
+				magnet.low.sort(sortEp);
+				magnet.medium.sort(sortEp);
+				magnet.high.sort(sortEp);
+
+				$('magnets').template('magnets', magnet);
+			}
+		});
+	}
+
+	updateEpisode(e){
+		let showIndex = user.animes.findIndex((o)=>{ return o.showId == this.show.showId; });
+		if (showIndex == -1) return;
+
+		let episode = $('#last-seen-episode').val() / 1;
+		user.animes[showIndex].episode = episode;
+		this.updateSubscribeStatus();
+	}
+
+	subscribe(e){
+		user.animes.push({showId: this.show.showId, episode: 0 });
+		this.updateSubscribeStatus();
+	}
+
+	unsubscribe(e){
+		let episodeIndex = user.animes.findIndex((o)=>{ return o.showId == this.show.showId; });
+		if (episodeIndex == -1) return;
+
+		user.animes.splice(episodeIndex, 1);
+		this.updateSubscribeStatus();
+	}
+
+	updateSubscribeStatus(){
+		if (this.startedUpdating) return;
+		this.startedUpdating = true;
+
+		Rest.User.update(user._id, { animes: user.animes },()=>{
+			Rest.Login.update('', {}, () => {
+				location.reload();
+			});
+		});
 	}
 }

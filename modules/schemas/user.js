@@ -4,6 +4,12 @@ module.exports = class User {
 		return {
 			username: {type: String, required: true},
 			password: {type: String, required: true},
+			quality:  {type: String, default: "high"},
+			exclusiveQuality: {type: Boolean, default: false},
+			animes: [{
+				showId: {type: Number, required: true},
+				episode: {type: Number, required: true}
+			}],
 			timeCreated: {type: Date, default: Date.now}
 		};
 	}

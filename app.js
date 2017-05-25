@@ -92,6 +92,48 @@ global.getHtml = function (cb, options, errCb) {
 	doRequest(cb, options, errCb);
 }
 
+async function getShows(req, res){
+	let user = req.session.content.user;
+	if(!user){
+		res.json([]);
+		return;
+	}
+	let result = [];
+
+	let animes = user.animes || [];
+	for (let anime of animes){
+		let highestEp = anime.episode;
+		let magnets = await MagnetsAnime.findOne({showId: anime.showId}).exec();
+
+		function loopThroughQuality(quality) {
+			for (let epMagnet of magnets[quality]){
+				if (epMagnet.episode > anime.episode){
+					result.push(epMagnet.magnet);
+					highestEp = Math.max(highestEp, epMagnet.episode);
+				}
+			}
+			anime.episode = highestEp;
+		}
+
+		loopThroughQuality(user.quality);
+		if (!user.exclusiveQuality) {
+			user.quality == 'high' && (loopThroughQuality('medium'));
+			user.quality == 'medium' && (loopThroughQuality('low'));
+		}
+	}
+
+	if (result.length){
+		let newUser = await User.findOne({_id: user._id}).exec()
+		.catch((e) => { console.log('catch newUser', e); });
+
+		newUser.animes = user.animes;
+		newUser.save();
+	}
+
+	res.json(result);
+}
+app.get('/get-shows', getShows);
+
 app.get('*',(req, res)=>{
 	res.sendFile(__dirname + '/www/index.html');
 });
@@ -115,7 +157,7 @@ function onceConnected() {
 
 	anime.loadDb()
 	// .then(()=> { return anime.downloadMagnets() })
-	.then(()=> { console.log('HorribleSubs loaded'); })
+	// .then(()=> { console.log('HorribleSubs loaded'); })
 	.then(() => {
 		console.log('HorribleSubs RSS enabled');
 		anime.readRSS();
