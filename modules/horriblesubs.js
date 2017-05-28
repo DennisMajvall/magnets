@@ -159,7 +159,7 @@ module.exports = class HorribleSubs {
 						options,
 						()=>{
 							tryResolve();
-							console.log('c', countdown, show.title);
+							console.log('countdown:', countdown, show.title);
 						}
 					);
 				}
@@ -201,7 +201,7 @@ module.exports = class HorribleSubs {
 
 				let tryResolve = (err, show)=> {
 					if (!err)
-							console.log('saved:', show.title, 'c', countdown);
+							console.log('saved:', show.title, 'countdown', countdown);
 					if (--countdown == 0) {
 						clearTimeout(timeoutHandle);
 						resolve();
@@ -250,29 +250,46 @@ module.exports = class HorribleSubs {
 			let magnet = $(el).find('link')[0].next.data;
 			let titleText = $(el).find('title').text();
 
-			let title = titleText.match(/\]\s*(.*) - .*\[.*p\]/)[1];
-			let quality = titleText.match(/ - .*\[(\d*p)\]/)[1];
+			let originalTitle = titleText;
+			// Remove S2 etc after title, before episode
+			titleText = titleText.replace(/(\]\s.*)( S\d+)+( - .*\[\d*p\])/, "$1$3");
 
-			let episode = titleText.match(/-\s+(\d+\.?\d?)(\+)?(v\d?)?.*\[.*\]/);
-			if (!episode) { episode = ['error', 999]; }
-			episode = parseInt(episode[1], 10);
-
-			let qualityIndex = 'low';
-			if (quality == '720p') qualityIndex = 'medium'
-			else if (quality == '1080p') qualityIndex = 'high';
-
-			if (!result.hasOwnProperty(title)) {
-				result[title] = {
-					low: [],
-					medium: [],
-					high: []
-				};
+			if (originalTitle != titleText) {
+				ListAnime.find({title: extractTitle()}).exec()
+				.then((something, b) => {
+					// if: S2 was actually part of the title, revert changes
+					something && something.length && (titleText = originalTitle);
+					continueExecution();
+				}, (e)=>{ console.log('rejected:', e); });
 			}
 
-			result[title][qualityIndex].push({
-				episode: episode,
-				magnet: magnet
-			});
+			function extractTitle(){ return titleText.match(/\]\s*(.*) - .*\[\d*p\]/)[1]; }
+
+			function continueExecution(){
+				let title = extractTitle();
+				let quality = titleText.match(/ - .*\[(\d*p)\]/)[1];
+
+				let episode = titleText.match(/-\s+(\d+\.?\d?)(\+)?(v\d?)?.*\[\d*p\]/);
+				if (!episode) { episode = ['error', 999]; }
+				episode = parseInt(episode[1], 10);
+
+				let qualityIndex = 'low';
+				if (quality == '720p') qualityIndex = 'medium'
+				else if (quality == '1080p') qualityIndex = 'high';
+
+				if (!result.hasOwnProperty(title)) {
+					result[title] = {
+						low: [],
+						medium: [],
+						high: []
+					};
+				}
+
+				result[title][qualityIndex].push({
+					episode: episode,
+					magnet: magnet
+				});
+			}
 		});
 
     return result;
