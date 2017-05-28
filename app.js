@@ -52,7 +52,12 @@ app.use(compression());
 // Never cache request starting with "/rest/"
 app.use((req, res, next)=>{
 	if(req.url.indexOf('/rest/') >= 0) {
-		res.set("Cache-Control", "no-store, must-revalidate");
+		let blacklist = [ '/rest/listanime/' ];
+		if (blacklist.indexOf(req.url) == -1) {
+			res.set("Cache-Control", "no-store, must-revalidate");
+		} else {
+			res.set("Cache-Control", "public, max-age=3600");
+		}
 	}
 	next();
 });
