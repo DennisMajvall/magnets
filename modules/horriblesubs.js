@@ -257,10 +257,12 @@ module.exports = class HorribleSubs {
 			if (originalTitle != titleText) {
 				ListAnime.find({title: extractTitle()}).exec()
 				.then((something, b) => {
-					// if: S2 was actually part of the title, revert changes
+					// if: S2 was actually part of the anime's title, revert changes
 					something && something.length && (titleText = originalTitle);
 					continueExecution();
 				}, (e)=>{ console.log('rejected:', e); });
+			} else {
+				continueExecution();
 			}
 
 			function extractTitle(){ return titleText.match(/\]\s*(.*) - .*\[\d*p\]/)[1]; }
