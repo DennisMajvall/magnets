@@ -3,10 +3,8 @@ class Router {
 		var self = this;
 		routes = routes || {};
 
-		// when clicking a link run the click handler
 		$(document).on('click','a', function(e) {
-			var aTag = $(this);
-			self.clickHandler(aTag, e);
+			self.clickHandler($(this), e);
 		});
 
 		// when using back/forward buttons call actOnRoute
@@ -18,14 +16,12 @@ class Router {
 		self.actOnRoute(location.pathname);
 	}
 
-	clickHandler(aTag, eventObj) {
+	clickHandler(aTag, e) {
 		var href = aTag.attr('href'), handleThisRoute = false;
 
-		// check if the href is among
-		// the routes this router should handle
-		handleThisRoute = routes.hasOwnProperty(href);
+		let route = this.getFunctionFromHref(href);
 
-		if(!handleThisRoute) {
+		if(!route) {
 			return;
 		}
 
@@ -33,34 +29,38 @@ class Router {
 		// (the two first arguments are meaningless but required)
 		history.pushState(null, '', href);
 
-		// prevent the browser default behaviour (the reload of the page)
-		eventObj.preventDefault();
-
-		// run the function connected to the route
-		this.actOnRoute(href);
+		e.preventDefault();
+		this.actOnRoute(route);
 	}
 
-	actOnRoute(route) {
-		// find the function corresponding to the route
-		var func = routes[route];
+	getFunctionFromHref(href){
+		var func = routes[href];
 
 		if (!func) {
 			for (let r in routes){
 				let i = r.indexOf('*');
 
-				if (i > -1 && route.substr(0, i) === r.substr(0, i)) {
+				if (i > -1 && href.substr(0, i) === r.substr(0, i)) {
 					func = routes[r];
 					break;
 				}
 			}
 		}
+		return func;
+	}
 
-		if (!func)
-			routes['/']
+	actOnRoute(route) {
+		var func = route;
+		if (typeof func == 'string')
+			func = this.getFunctionFromHref(func);
+
+		if (!func) {
+			func = routes['/']
+			console.log('route not found', route);
+		}
 
 		if (func) {
 			$('.page-content').empty().off();
-
 			func();
 		}
 	}
