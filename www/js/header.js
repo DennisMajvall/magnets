@@ -27,6 +27,7 @@ class Header {
 			user = false;
 			this.loadTemplate(res);
 			this.setPreviousUsernameIfEmpty();
+			BROADCAST('logout');
 		});
 	}
 
@@ -64,7 +65,10 @@ class Header {
 		$('.user-box').on('click', '#logout', () => { this.sendLogoutRequest(); });
 		$('.user-box').on('keyup', 'input', (e) => { if (e.originalEvent.key == 'Enter') this.sendLoginRequest(); });
 
-		res.user && localStorage.setItem('username', res.user.username);
-		res.user && BROADCAST('login');
+		if (res.user) {
+			localStorage.setItem('username', res.user.username);
+			BROADCAST('login');
+			new GetShows();
+		}
 	}
 }

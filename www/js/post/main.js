@@ -10,7 +10,6 @@ var Rest = {};
 var user = user || {};
 var routes = routes || {
   '/': () => { new IndexPage() },
-  '/login': () => { new LoginPage() },
   '/anime/*': () => { new AnimePage(); }
 };
 
@@ -18,6 +17,9 @@ $.loadTemplates([
   'index-page',
   'anime-page',
   'header',
+  'get-shows',
+  'anime-list',
+  'subscription-list',
   'magnets'
 ], function(){
   $(()=>{
