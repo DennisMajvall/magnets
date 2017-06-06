@@ -1,0 +1,10 @@
+<h1 class="text-center">Your subscriptions</h1>
+[if shows]
+	[repeat shows, show]
+		<div class="col-sm-6">
+			<a href="${show.slug}" _id="${show._id}">${show.title}</a>
+		</div>
+	[endrepeat]
+[else]
+	<p>This feature is only available for logged in users.</p>
+[endif]
