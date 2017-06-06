@@ -98,6 +98,7 @@ global.getHtml = function (cb, options, errCb) {
 }
 
 async function getShows(req, res){
+	res.set("Cache-Control", "public, max-age=6");
 	let user = req.session.content.user;
 	if(!user){
 		res.json([]);

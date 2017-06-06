@@ -1,22 +1,24 @@
-<div class="row">
-	<div class="col-xs-2 col-xs-offset-2">
-		<p _id="${show._id}">Id: ${show.showId}</p>
-		<a href="http://horriblesubs.info${show.slug}" target="_blank">Horrible Subs Link</a>
-	</div>
-	<div class="col-xs-8">
-		<h2>${show.title}</h2>
-		<div>
-			[if !subscriberStatus]
-				<button id="subscribe" class="btn btn-success">Subscribe</button>
-			[else]
-				<span>Last seen episode:</span>
-				<input id="last-seen-episode" class="slim-input" value="${subscriberStatus.episode}" placeholder="0" type="number" />
-				<button id="update" class="btn btn-default btn-xs">Update</button>
-				<button id="unsubscribe" class="btn btn-danger btn-xs">Unubscribe</button>
-			[endif]
+<div class="container-fluid">
+	<div class="row">
+		<div class="col-xs-2 col-xs-offset-2">
+			<p _id="${show._id}">Id: ${show.showId}</p>
+			<a href="http://horriblesubs.info${show.slug}" target="_blank">Horrible Subs Link</a>
 		</div>
-		<br />
-		<magnets></magnets>
+		<div class="col-xs-8">
+			<h2>${show.title}</h2>
+			<div>
+				[if !subscriberStatus]
+					<button id="subscribe" class="btn btn-success">Subscribe</button>
+				[else]
+					<span>Last seen episode:</span>
+					<input id="last-seen-episode" class="slim-input" value="${subscriberStatus.episode}" placeholder="0" type="number" />
+					<button id="update" class="btn btn-default btn-xs">Update</button>
+					<button id="unsubscribe" class="btn btn-danger btn-xs">Unubscribe</button>
+				[endif]
+			</div>
+			<br />
+			<magnets></magnets>
+		</div>
 	</div>
 </div>
 

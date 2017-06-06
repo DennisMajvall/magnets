@@ -9,7 +9,7 @@ class AnimePage {
 			for (let show of shows) {
 				this.show = show;
 
-				let subscriberStatus = user.animes.find((o)=>{ return o.showId == show.showId;});
+				let subscriberStatus = user.animes && user.animes.find((o)=>{ return o.showId == show.showId;}) || false;
 
 				$('.page-content').template('anime-page', {
 					show: show,

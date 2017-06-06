@@ -1,3 +1,11 @@
 .slim-input {
 	width: 50px;
 }
+.header{
+	height: 110px;
+	overflow-y: hidden;
+}
+.anime-list{
+	height: calc(100vh - 110px);
+	overflow-y: scroll;
+}

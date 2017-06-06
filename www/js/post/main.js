@@ -7,9 +7,8 @@ var Rest = {};
   'ConsoleLog'
 ].map(name => Rest[name] = new RestEntity(name.toLowerCase()));
 
-var user = {};
-var routes = {};
-routes = {
+var user = user || {};
+var routes = routes || {
   '/': () => { new IndexPage() },
   '/login': () => { new LoginPage() },
   '/anime/*': () => { new AnimePage(); }

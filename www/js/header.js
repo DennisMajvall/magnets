@@ -9,7 +9,7 @@ class Header {
 				this.setPreviousUsernameIfEmpty();
 				// If the user has saved a password for a username in their
 				// browser, wait for the browser to auto-fill the password
-				setTimeout(() => { this.getLoginDetails() && this.sendLoginRequest();}, 100);
+				setTimeout(() => { this.getLoginDetails() && this.sendLoginRequest();}, 500);
 			} else {
 				this.loadTemplate(res);
 			}
@@ -65,5 +65,6 @@ class Header {
 		$('.user-box').on('keyup', 'input', (e) => { if (e.originalEvent.key == 'Enter') this.sendLoginRequest(); });
 
 		res.user && localStorage.setItem('username', res.user.username);
+		res.user && BROADCAST('login');
 	}
 }
