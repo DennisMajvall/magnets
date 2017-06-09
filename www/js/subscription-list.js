@@ -30,7 +30,7 @@ class SubscriptionList {
 	}
 
 	renderTemplate(shows){
-		$('.subscription-list').empty().template('subscription-list', { shows: shows });
+		$('.middle-part').empty().template('subscription-list', { shows: shows });
 		return !!shows;
 	}
 }

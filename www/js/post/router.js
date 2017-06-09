@@ -60,7 +60,7 @@ class Router {
 		}
 
 		if (func) {
-			$('.page-content').empty().off();
+			$('.middle-part').empty().off();
 			func();
 		}
 	}

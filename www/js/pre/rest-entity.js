@@ -62,6 +62,18 @@ class RestEntity {
 	}
 
 	update(idOrQuery,properties,callback){
+		idOrQuery = idOrQuery || '';
+
+		// if just a callback set idOrQuery to nothing
+		if(typeof idOrQuery == "function"){
+			callback = idOrQuery;
+			idOrQuery = '';
+			properties = {};
+		} else if(typeof properties == "function"){
+			callback = properties;
+			properties = {};
+		}
+
 		$.ajax({
 			url: this.baseUrl + idOrQuery,
 			type: "PUT",
@@ -70,6 +82,11 @@ class RestEntity {
 			processData: false,
 			// and tell Node that it is raw json
 			headers: {"Content-Type": "application/json"},
+			beforeSend: function(xhr) {
+				// Fix a bug( console error) in some versions of firefox
+				if (xhr.overrideMimeType)
+					xhr.overrideMimeType("application/json");
+			},
 			// the request body
 			data: JSON.stringify(properties),
 			// callback functions

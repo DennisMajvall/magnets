@@ -9,3 +9,17 @@
 	height: calc(100vh - 110px);
 	overflow-y: scroll;
 }
+h2{
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+.no-margin{
+  margin: 0;
+}
+.spaced{
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+.spaced-bottom{
+  margin-bottom: 10px;
+}

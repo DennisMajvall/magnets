@@ -1,9 +1,6 @@
 class GetShows {
 	constructor() {
-		if (!user)
-			WATCH('login', this.onLogin, this);
-		else
-			this.onLogin();
+		WATCH('login', this.onLogin, this);
 	}
 
 	onLogin(){
@@ -35,5 +32,10 @@ class GetShows {
 			el.append(iFrame);
 			window.open(magnets[i], `${name}`);
 		}
+
+		Rest.Login.update((res) => {
+      user = res.user;
+      BROADCAST('shows-downloaded');
+    });
 	}
 }

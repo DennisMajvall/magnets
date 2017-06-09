@@ -3,6 +3,5 @@ class IndexPage {
 		$('.page-content').template('index-page');
 
 		new AnimeList();
-		new SubscriptionList();
 	}
 }
