@@ -1,26 +1,36 @@
 class SubscriptionList {
 	constructor() {
-		this.onLogout();
-		WATCH('login', this.onLogin, this);
+		this.onLogin();
 
-		WATCH('logout', this.onLogout);
+		WATCH('login', this.onLogin, this);
+		WATCH('logout', this.onLogout, this);
 	}
 
 	onLogin(){
-		if (user && user.animes){
-			let ids = user.animes.map((o) => { return o.showId;});
-			Rest.ListAnime.find(`find/{showId: { $in: [${ids}] }}`, (shows, err) => {
-				shows = shows.map(s => {
-					s.slug = s.slug.replace('/shows/', '/anime/');
-					return s;
-				});
+		if (!user || !user.animes || this.hasLoaded)
+			return;
 
-				$('.subscription-list').empty().template('subscription-list', { shows: shows });
+		this.hasLoaded = true;
+
+		let ids = user.animes.map((o) => { return o.showId;});
+		Rest.ListAnime.find(`find/{showId: { $in: [${ids}] }}`, (shows, err) => {
+			this.shows = shows.map(s => {
+				s.slug = s.slug.replace('/shows/', '/anime/');
+				return s;
 			});
-		}
+
+			this.renderTemplate(this.shows);
+		});
 	}
 
 	onLogout(){
-		$('.subscription-list').empty().template('subscription-list', { shows: false });
+		this.hasLoaded = false;
+		this.shows = false;
+		this.renderTemplate(this.shows);
+	}
+
+	renderTemplate(shows){
+		$('.subscription-list').empty().template('subscription-list', { shows: shows });
+		return !!shows;
 	}
 }
