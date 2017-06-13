@@ -10,7 +10,8 @@ var Rest = {};
 var user = user || {};
 var routes = routes || {
   '/': () => { new SubscriptionList(); },
-  '/anime/*': () => { new AnimeDetails(); }
+  '/anime/*': () => { new AnimeDetails(); },
+  '/create-account': () => { new CreateAccount(); }
 };
 
 $.loadTemplates([
@@ -21,6 +22,7 @@ $.loadTemplates([
   'anime-list',
   'subscription-list',
   'subscriber-status',
+  'create-account',
   'magnets'
 ], function(){
   $(()=>{

@@ -1,27 +1,28 @@
 class Router {
 	constructor() {
-		var self = this;
-		routes = routes || {};
+    if (!routes) throw new Error('No routes setup before Router.constructor!');
 
-		$(document).on('click','a', function(e) {
-			self.clickHandler($(this), e);
+		$(document).on('click','a', (e) => {
+			this.clickHandler($(e.currentTarget), e);
 		});
 
 		// when using back/forward buttons call actOnRoute
 		window.onpopstate = () => {
-			self.actOnRoute(location.pathname);
+			this.actOnRoute(location.pathname);
 		}
 
 		// on initial load
-		self.actOnRoute(location.pathname);
+		this.actOnRoute(location.pathname);
 	}
 
 	clickHandler(aTag, e) {
-		var href = aTag.attr('href'), handleThisRoute = false;
+    if(aTag.attr('target') == '_blank') { console.log('wtf'); return; }
+		var href = aTag.attr('href');
 
-		let route = this.getFunctionFromHref(href);
+		let route = Router.getFunctionFromHref(href);
 
 		if(!route) {
+			console.log('route not found in clickHandler', href);
 			return;
 		}
 
@@ -33,26 +34,10 @@ class Router {
 		this.actOnRoute(route);
 	}
 
-	getFunctionFromHref(href){
-		var func = routes[href];
-
-		if (!func) {
-			for (let r in routes){
-				let i = r.indexOf('*');
-
-				if (i > -1 && href.substr(0, i) === r.substr(0, i)) {
-					func = routes[r];
-					break;
-				}
-			}
-		}
-		return func;
-	}
-
 	actOnRoute(route) {
 		var func = route;
 		if (typeof func == 'string')
-			func = this.getFunctionFromHref(func);
+			func = Router.getFunctionFromHref(func);
 
 		if (!func) {
 			func = routes['/']
@@ -60,8 +45,26 @@ class Router {
 		}
 
 		if (func) {
-			$('.middle-part').empty().off();
+			$('.middle-part').off().empty();
 			func();
 		}
+	}
+
+	static getFunctionFromHref(href){
+    return routes[ Router.getRouteFromUrl(href) ];
+	}
+
+  // '/anime/some-name-here' returns '/anime/*'
+	static getRouteFromUrl(href = location.pathname){
+    if (routes[href]) return href;
+
+    for (let r in routes){
+      let i = r.indexOf('*');
+
+      if (i > -1 && href.substr(0, i) === r.substr(0, i)) {
+        return r;
+      }
+    }
+		return '';
 	}
 }

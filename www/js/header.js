@@ -14,6 +14,8 @@ class Header {
 				this.loadTemplate(res);
 			}
 		});
+    WATCH('force-login', this.sendLoginRequest, this);
+    WATCH('force-logout', this.sendLogoutRequest, this);
 	}
 
 	getLoginDetails(){
@@ -23,6 +25,7 @@ class Header {
 	}
 
 	sendLogoutRequest(){
+    if (!user) return;
 		Rest.Login.delete((res) => {
 			user = false;
 			this.loadTemplate(res);
@@ -32,6 +35,7 @@ class Header {
 	}
 
 	setPreviousUsernameIfEmpty(){
+    if (user) return;
 		let un = $('#username');
 		let oldUsername = localStorage.getItem('username');
 		if (!(un.val() || '').trim() && oldUsername) {
@@ -41,12 +45,13 @@ class Header {
 
 	sendLoginRequest(){
 		let body = this.getLoginDetails();
-		if (body) {
-			Rest.Login.create(body, (res) => {
-				user = res.user;
-				this.loadTemplate(res);
-			});
-		}
+		if (!body) return;
+
+    Rest.Login.create(body, (res) => {
+      user = res.user;
+      this.loadTemplate(res);
+      this.setPreviousUsernameIfEmpty();
+    });
 	}
 
 	createUser(){

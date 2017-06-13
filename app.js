@@ -7,12 +7,12 @@ var http = require('http')
 var util = require('util');
 var mongoose = require('mongoose');
 var sha1 = require('sha1');
+var getshows = require('./modules/getshows');
 require('mongoosefromclass')(mongoose);
 
 global.mongoose = mongoose;
 global.sha1 = sha1;
 global.passwordSalt = "salt_hidden_on_github";
-// global.appRoot = require('path').normalize(__dirname +'/');
 
 // Stop mongoose from using a deprecated promise library
 mongoose.Promise = Promise;
@@ -97,48 +97,8 @@ global.getHtml = function (cb, options, errCb) {
 	doRequest(cb, options, errCb);
 }
 
-async function getShows(req, res){
-	res.set("Cache-Control", "public, max-age=6");
-	let user = req.session.content.user;
-	if(!user){
-		res.json([]);
-		return;
-	}
-	let result = [];
-
-	let animes = user.animes || [];
-	for (let anime of animes){
-		let highestEp = anime.episode;
-		let magnets = await MagnetsAnime.findOne({showId: anime.showId}).exec();
-
-		function loopThroughQuality(quality) {
-			for (let epMagnet of magnets[quality]){
-				if (epMagnet.episode > anime.episode){
-					result.push(epMagnet.magnet);
-					highestEp = Math.max(highestEp, epMagnet.episode);
-				}
-			}
-			anime.episode = highestEp;
-		}
-
-		loopThroughQuality(user.quality);
-		if (!user.exclusiveQuality) {
-			user.quality == 'high' && (loopThroughQuality('medium'));
-			user.quality == 'medium' && (loopThroughQuality('low'));
-		}
-	}
-
-	if (result.length){
-		let newUser = await User.findOne({_id: user._id}).exec()
-		.catch((e) => { console.log('catch newUser', e); });
-
-		newUser.animes = user.animes;
-		newUser.save();
-	}
-
-	res.json(result);
-}
-app.get('/get-shows', getShows);
+app.get('/get-shows/:username/:password', getshows);
+app.get('/get-shows', getshows);
 
 app.get('*',(req, res)=>{
 	res.sendFile(__dirname + '/www/index.html');

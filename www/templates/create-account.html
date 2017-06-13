@@ -1,0 +1,30 @@
+<div class="create-account">
+  <h2 class="text-center">Create account</h1>
+
+  [if hasCreated]
+    <div class='col-xs-12'>
+      <p>Account successfully created,
+        <a href="/"><strong>click here</strong></a>
+        to return to the startpage.</p>
+    </div>
+  [else if !user]
+    <div class='col-xs-11 col-sm-6 col-sm-offset-3 col-md-4 col-md-offset-4'>
+      <div class="form-group">
+        <input id="create-username" class="form-control" placeholder="Username" type="text" >
+      </div>
+      <div class="form-group">
+        <input id="create-password" class="form-control" placeholder="Password" type="password">
+      </div>
+      <button id="create-button" class="btn btn-success">Create</button>
+      [if error]
+        <p>${error}</p>
+      [endif]
+    </div>
+  [else]
+  <div class='col-xs-12'>
+    <p>If you intend to create an account, please
+      <a id="logout-link" class="pointer"><strong>log out</strong></a>
+      of your current one first.</p>
+  </div>
+  [endif]
+</div>

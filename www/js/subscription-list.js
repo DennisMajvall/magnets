@@ -1,14 +1,18 @@
 class SubscriptionList {
 	constructor() {
-		this.onLogin();
+		if (!this.onLogin()){
+			this.renderTemplate();
+    } else {
+		  BROADCAST('get-shows');
+    }
 
 		WATCH('login', this.onLogin, this);
 		WATCH('logout', this.onLogout, this);
 	}
 
 	onLogin(){
-		if (!user || !user.animes || this.hasLoaded)
-			return;
+		if (!user || !user.animes || this.hasLoaded || Router.getRouteFromUrl() != '/')
+			return false;
 
 		this.hasLoaded = true;
 
@@ -21,6 +25,8 @@ class SubscriptionList {
 
 			this.renderTemplate(this.shows);
 		});
+
+    return true;
 	}
 
 	onLogout(){
@@ -30,7 +36,8 @@ class SubscriptionList {
 	}
 
 	renderTemplate(shows){
-		$('.middle-part').empty().template('subscription-list', { shows: shows });
+    if (Router.getRouteFromUrl() != '/') return false;
+		$('.middle-part').empty().template('subscription-list', { shows: shows, user: user });
 		return !!shows;
 	}
 }
