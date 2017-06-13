@@ -31,7 +31,7 @@ class BroadcastWatch {
 
 		let w = this.watchers[name] = this.watchers[name] || [];
 		if (w && w.length && callback != console.log) {
-			if (w.find((obj) => {return obj.cb == callback;}))
+			if (w.find((obj) => {return obj.cb == callback && obj.scope == scope;}))
 				return false;
 		}
 

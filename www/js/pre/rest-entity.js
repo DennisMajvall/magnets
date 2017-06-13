@@ -19,6 +19,11 @@ class RestEntity {
 		$.ajax({
 			url: this.baseUrl,
 			type: "POST",
+			beforeSend: function(xhr) {
+				// Fix a bug( console error) in some versions of firefox
+				if (xhr.overrideMimeType)
+					xhr.overrideMimeType("application/json");
+			},
 			dataType: "json",
 			// don't process the request body
 			processData: false,
@@ -46,12 +51,12 @@ class RestEntity {
 
 		$.ajax({
 			url: this.baseUrl + idOrQuery,
+			type: "GET",
 			beforeSend: function(xhr) {
 				// Fix a bug( console error) in some versions of firefox
 				if (xhr.overrideMimeType)
 					xhr.overrideMimeType("application/json");
 			},
-			type: "GET",
 			dataType: "json",
 			success: callback,
 			error: function(error){
@@ -77,16 +82,16 @@ class RestEntity {
 		$.ajax({
 			url: this.baseUrl + idOrQuery,
 			type: "PUT",
-			dataType: "json",
-			// don't process the request body
-			processData: false,
-			// and tell Node that it is raw json
-			headers: {"Content-Type": "application/json"},
 			beforeSend: function(xhr) {
 				// Fix a bug( console error) in some versions of firefox
 				if (xhr.overrideMimeType)
 					xhr.overrideMimeType("application/json");
 			},
+			dataType: "json",
+			// don't process the request body
+			processData: false,
+			// and tell Node that it is raw json
+			headers: {"Content-Type": "application/json"},
 			// the request body
 			data: JSON.stringify(properties),
 			// callback functions
