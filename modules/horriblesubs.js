@@ -240,59 +240,59 @@ module.exports = class HorribleSubs {
 		});
   }
 
-	parseRSS(input) {
+	async parseRSS(input) {
     let $ = cheerio.load(input);
     input = $('item');
 
 		let result = {};
 
-    input.each((i, el) => {
+    async function onIteration(i, el){
 			let magnet = $(el).find('link')[0].next.data;
-			let titleText = $(el).find('title').text();
+      let fullTitle = $(el).find('title').text();
 
-			let originalTitle = titleText;
-			// Remove S2 etc after title, before episode
-			titleText = titleText.replace(/(\]\s.*)( S\d+)+( - .*\[\d*p\])/, "$1$3");
+      let regexParts = fullTitle.match(/\]\s(.*[^S\d])(S*\d*) - (\d+)+.*\[(\d*p)\]/);
+      if (!regexParts) {
+        console.log('RSS could not regex: ', fullTitle);
+        return;
+      }
+      regexParts = regexParts.map((s) => {return (s||'').trim()});
+      let title = regexParts[1]; // Ex 'Shingeki No Kyojin'
+      let season = regexParts[2]; // Ex: 'S2' or '2'
+      let episode = regexParts[3]; // Ex '37'
+      let quality = regexParts[4]; // Ex '1080p'
 
-			if (originalTitle != titleText) {
-				ListAnime.find({title: extractTitle()}).exec()
-				.then((something, b) => {
-					// if: S2 was actually part of the anime's title, revert changes
-					something && something.length && (titleText = originalTitle);
-					continueExecution();
-				}, (e)=>{ console.log('rejected:', e); });
-			} else {
-				continueExecution();
+      let titleWithSeason = title + ' ' + season;
+
+			if (season) {
+				let something = await ListAnime.find({title: titleWithSeason}).exec()
+        .catch((e) =>{ console.log('rejected:', e); });
+        if (something && something.length) {
+          title = titleWithSeason;
+        }
 			}
 
-			function extractTitle(){ return titleText.match(/\]\s*(.*) - .*\[\d*p\]/)[1]; }
+      if (!result.hasOwnProperty(title)) {
+        result[title] = {
+          low: [],
+          medium: [],
+          high: []
+        };
+      }
 
-			function continueExecution(){
-				let title = extractTitle();
-				let quality = titleText.match(/ - .*\[(\d*p)\]/)[1];
+      let qualityIndex = 'low';
+      if (quality == '720p') qualityIndex = 'medium'
+      else if (quality == '1080p') qualityIndex = 'high';
 
-				let episode = titleText.match(/-\s+(\d+\.?\d?)(\+)?(v\d?)?.*\[\d*p\]/);
-				if (!episode) { episode = ['error', 999]; }
-				episode = parseInt(episode[1], 10);
+      result[title][qualityIndex].push({
+        episode: parseInt(episode, 10),
+        magnet: magnet
+      });
+		}
 
-				let qualityIndex = 'low';
-				if (quality == '720p') qualityIndex = 'medium'
-				else if (quality == '1080p') qualityIndex = 'high';
-
-				if (!result.hasOwnProperty(title)) {
-					result[title] = {
-						low: [],
-						medium: [],
-						high: []
-					};
-				}
-
-				result[title][qualityIndex].push({
-					episode: episode,
-					magnet: magnet
-				});
-			}
-		});
+    for(let i = 0; i < input.length; ++i){
+      let el = input[i];
+      await onIteration(i, el);
+    }
 
     return result;
   }
@@ -306,8 +306,8 @@ module.exports = class HorribleSubs {
 			}
 		}
 
-		let httpCallback = (data) => {
-			let parsed = this.parseRSS(data);
+		let httpCallback = async (data) => {
+			let parsed = await this.parseRSS(data);
 			for (let showTitle in parsed){
 				let newMagnets = parsed[showTitle];
 
