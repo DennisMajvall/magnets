@@ -34,3 +34,8 @@ $.loadTemplates([
     }
   })
 });
+
+String.prototype.splice = function(index, count=0, add='') {
+  while (index < 0) { index += this.length || (index*-1); }
+  return this.slice(0, index) + add + this.slice(index + count);
+}

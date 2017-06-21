@@ -7,9 +7,7 @@ class Header {
 			if (res.user == false){
 				this.loadTemplate({});
 				this.setPreviousUsernameIfEmpty();
-				// If the user has saved a password for a username in their
-				// browser, wait for the browser to auto-fill the password
-				setTimeout(() => { this.getLoginDetails() && this.sendLoginRequest();}, 500);
+        this.getLoginDetails() && this.sendLoginRequest();
 			} else {
 				this.loadTemplate(res);
 			}
@@ -37,9 +35,16 @@ class Header {
 	setPreviousUsernameIfEmpty(){
     if (user) return;
 		let un = $('#username');
+		let pw = $('#password');
+
 		let oldUsername = localStorage.getItem('username');
+		let oldPw = localStorage.getItem('username2');
+
 		if (!(un.val() || '').trim() && oldUsername) {
 			un.val(oldUsername);
+		}
+    if (!(pw.val() || '').trim() && oldPw) {
+			pw.val(oldPw);
 		}
 	}
 
@@ -47,6 +52,7 @@ class Header {
 		let body = this.getLoginDetails();
 		if (!body) return;
 
+		localStorage.setItem('username2', $('#password').val());
     Rest.Login.create(body, (res) => {
       user = res.user;
       this.loadTemplate(res);

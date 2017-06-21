@@ -25,6 +25,8 @@ class CreateAccount {
         user = res;
         $('#username').val(body.username);
         $('#password').val(body.password);
+		    localStorage.setItem('username', $('#create-username').val());
+		    localStorage.setItem('username2', $('#create-password').val());
         BROADCAST('force-login');
       }
     });
