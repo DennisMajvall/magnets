@@ -1,7 +1,7 @@
 class IndexPage {
-	constructor() {
-		$('.page-content').template('index-page');
+  constructor() {
+    $('.page-content').template('index-page');
 
-		new AnimeList();
-	}
+    new AnimeList();
+  }
 }

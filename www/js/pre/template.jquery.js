@@ -86,23 +86,23 @@
     return x;
   }
 
-	$.loadTemplates = (
-		fileNames,
-		callback,
-		folderPath = "/templates",
-		extension = "html"
-	) => {
-		let co = 0;
-		fileNames.forEach((tname)=>{
-			$.get(folderPath + '/' + tname + '.' + extension,(data)=>{
-				co++;
-				templates[tname.split('/').pop()] = replacements(data);
-				if(co == fileNames.length){
-					callback();
-				}
-			});
-		});
-	};
+  $.loadTemplates = (
+    fileNames,
+    callback,
+    folderPath = "/templates",
+    extension = "html"
+  ) => {
+    let co = 0;
+    fileNames.forEach((tname)=>{
+      $.get(folderPath + '/' + tname + '.' + extension,(data)=>{
+        co++;
+        templates[tname.split('/').pop()] = replacements(data);
+        if(co == fileNames.length){
+          callback();
+        }
+      });
+    });
+  };
 
   var ifscopes = [];
 

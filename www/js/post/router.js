@@ -1,61 +1,61 @@
 class Router {
-	constructor() {
+  constructor() {
     if (!routes) throw new Error('No routes setup before Router.constructor!');
 
-		$(document).on('click','a', (e) => {
-			this.clickHandler($(e.currentTarget), e);
-		});
+    $(document).on('click','a', (e) => {
+      this.clickHandler($(e.currentTarget), e);
+    });
 
-		// when using back/forward buttons call actOnRoute
-		window.onpopstate = () => {
-			this.actOnRoute(location.pathname);
-		}
+    // when using back/forward buttons call actOnRoute
+    window.onpopstate = () => {
+      this.actOnRoute(location.pathname);
+    }
 
-		// on initial load
-		this.actOnRoute(location.pathname);
-	}
+    // on initial load
+    this.actOnRoute(location.pathname);
+  }
 
-	clickHandler(aTag, e) {
+  clickHandler(aTag, e) {
     if(aTag.attr('target') == '_blank') { console.log('wtf'); return; }
-		var href = aTag.attr('href');
+    var href = aTag.attr('href');
 
-		let route = Router.getFunctionFromHref(href);
+    let route = Router.getFunctionFromHref(href);
 
-		if(!route) {
-			console.log('route not found in clickHandler', href);
-			return;
-		}
+    if(!route) {
+      console.log('route not found in clickHandler', href);
+      return;
+    }
 
-		// use pushState (change url + add to history)
-		// (the two first arguments are meaningless but required)
-		history.pushState(null, '', href);
+    // use pushState (change url + add to history)
+    // (the two first arguments are meaningless but required)
+    history.pushState(null, '', href);
 
-		e.preventDefault();
-		this.actOnRoute(route);
-	}
+    e.preventDefault();
+    this.actOnRoute(route);
+  }
 
-	actOnRoute(route) {
-		var func = route;
-		if (typeof func == 'string')
-			func = Router.getFunctionFromHref(func);
+  actOnRoute(route) {
+    var func = route;
+    if (typeof func == 'string')
+      func = Router.getFunctionFromHref(func);
 
-		if (!func) {
-			func = routes['/']
-			console.log('route not found', route);
-		}
+    if (!func) {
+      func = routes['/']
+      console.log('route not found', route);
+    }
 
-		if (func) {
-			$('.middle-part').off().empty();
-			func();
-		}
-	}
+    if (func) {
+      $('.middle-part').off().empty();
+      func();
+    }
+  }
 
-	static getFunctionFromHref(href){
+  static getFunctionFromHref(href){
     return routes[ Router.getRouteFromUrl(href) ];
-	}
+  }
 
   // '/anime/some-name-here' returns '/anime/*'
-	static getRouteFromUrl(href = location.pathname){
+  static getRouteFromUrl(href = location.pathname){
     if (routes[href]) return href;
 
     for (let r in routes){
@@ -65,6 +65,6 @@ class Router {
         return r;
       }
     }
-		return '';
-	}
+    return '';
+  }
 }

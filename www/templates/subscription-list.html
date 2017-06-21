@@ -1,14 +1,14 @@
 <h2 class="text-center">Your subscriptions</h1>
 [if shows && shows.length]
-	[repeat shows, show]
-		<div class="col-sm-6 spaced-bottom">
-			<a href="${show.slug}" _id="${show._id}">${show.title}</a>
-		</div>
-	[endrepeat]
+  [repeat shows, show]
+    <div class="col-sm-6 spaced-bottom">
+      <a href="${show.slug}" _id="${show._id}">${show.title}</a>
+    </div>
+  [endrepeat]
 [else if !user]
-	<p>This feature is only available for logged in users.</p>
-	<p><a href="/create-account">Create an account here</a></p>
+  <p>This feature is only available for logged in users.</p>
+  <p><a href="/create-account">Create an account here</a></p>
 [else]
-	<p>It seems you haven't subscribed to any shows yet.
+  <p>It seems you haven't subscribed to any shows yet.
     To get started; search or browse through the list on the sides.</p>
 [endif]
