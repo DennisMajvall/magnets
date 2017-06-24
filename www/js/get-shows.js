@@ -16,7 +16,7 @@ class GetShows {
       },
       type: "GET",
       dataType: "json",
-      success: (data)=>{ this.createMagnetLinks(data) },
+      success: (data)=>{ this.onShowsDownloaded(data) },
       error: (error)=>{
         this.inProgress = false;
         console.log(error.responseJSON);
@@ -24,16 +24,34 @@ class GetShows {
     });
   }
 
-  createMagnetLinks(magnets){
-    this.inProgress = false;
-    if (!magnets || !magnets.length) return;
+  onShowsDownloaded(magnets){
+    if (!magnets || !magnets.length){
+      this.inProgress = false;
+      return;
+    }
+
+    Rest.Trackers.find('find/{isAnime: true}', (trackers) => {
+      if (trackers && trackers.length){
+        let trackersAsString = '&tr=' + trackers.map(t=>t.name).join('&tr=');
+        this.createMagnetLinks(magnets, trackersAsString);
+      } else {
+        console.log('no trackers found');
+      }
+
+      this.inProgress = false;
+    });
+  }
+
+  createMagnetLinks(magnets, trackersAsString){
     let el = $('body');
 
     for (let i = 0; i < magnets.length; ++i){
       let name = 'magnetframe' + i;
       let iFrame = `<iframe style="display:none" name="${name}"></iframe>`
       el.append(iFrame);
-      window.open(magnets[i], `${name}`);
+
+      let magnetAsLink = 'magnet:?xt=urn:btih:' + magnets[i] + trackersAsString;
+      window.open(magnetAsLink, `${name}`);
     }
 
     Rest.Login.update((res) => {

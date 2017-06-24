@@ -22,7 +22,7 @@ class Router {
     let route = Router.getFunctionFromHref(href);
 
     if(!route) {
-      console.log('route not found in clickHandler', href);
+      href.indexOf('magnet:?') != 0 && console.log('route not found in clickHandler', href);
       return;
     }
 

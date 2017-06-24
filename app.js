@@ -29,6 +29,7 @@ var restSchemas = [
 	"User",
 	"ListAnime",
 	"MagnetsAnime",
+  "Trackers",
 	"ConsoleLog"
 ];
 
@@ -119,6 +120,9 @@ mongoose.connection.once('open', onceConnected);
 mongoose.connection.on('error', () => console.log('Error connecting to mongoDB'));
 
 function onceConnected() {
+  // addTrackers();
+  // removeTrackers();
+
 	var anime = new HorribleSubs();
 
 	anime.loadDb()
@@ -136,3 +140,63 @@ function onceConnected() {
 	});
 }
 
+async function removeTrackers(){
+  let magnets = await MagnetsAnime.find({}).exec();
+  if(!magnets){ console.log('null result'); return; }
+  magnets = magnets.splice(1);
+
+  function everyMagnet(m, qual){
+    for (let h of m[qual]){
+      let newMagnetName = h.magnet.split('&tr=')[0];
+      h.magnet = newMagnetName.substr(newMagnetName.lastIndexOf(':')+1);
+    }
+  }
+
+  for (let m of magnets){
+    everyMagnet(m, 'high');
+    everyMagnet(m, 'medium');
+    everyMagnet(m, 'low');
+    m.save();
+  }
+}
+
+async function addTrackers(){
+  let magnets = await MagnetsAnime.find({}).exec();
+  if(!magnets){ console.log('null result'); return; }
+
+  let arrOfTrackers = [];
+
+  function everyMagnet(m, qual){
+    for (let h of m[qual]){
+      if (h.magnet.indexOf('magnet:?' != 0))
+        continue;
+
+      let splitted = h.magnet.split('&tr=').splice(1);
+      for (let s of splitted){
+        if (arrOfTrackers.indexOf(s) == -1) {
+          arrOfTrackers.push(s);
+        }
+      }
+    }
+  }
+
+  for (let m of magnets){
+    everyMagnet(m, 'high');
+    everyMagnet(m, 'medium');
+    everyMagnet(m, 'low');
+  }
+
+  console.log('trackers found');
+  for (let t of arrOfTrackers){
+    console.log(t);
+    Trackers.update(
+      { name: t },
+      { $setOnInsert:{
+        name: t,
+        isAnime: true
+      }},
+      { upsert: true },
+      function(err, numAffected) {}
+    );
+  }
+}

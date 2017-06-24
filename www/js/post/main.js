@@ -3,6 +3,7 @@ var Rest = {};
   'ListAnime',
   'MagnetsAnime',
   'Login',
+  'Trackers',
   'User',
   'ConsoleLog'
 ].map(name => Rest[name] = new RestEntity(name.toLowerCase()));
