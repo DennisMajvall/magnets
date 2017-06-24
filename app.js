@@ -19,27 +19,27 @@ mongoose.Promise = Promise;
 
 // Load classes, make them global and then convert selected ones to modules
 var modulesToLoad = [
-	"Sessionhandler",
-	"Loginhandler",
-	"Restrouter",
-	"HorribleSubs"
+  "Sessionhandler",
+  "Loginhandler",
+  "Restrouter",
+  "HorribleSubs"
 ];
 var schemas = [ "Session" ];
 var restSchemas = [
-	"User",
-	"ListAnime",
-	"MagnetsAnime",
+  "User",
+  "ListAnime",
+  "MagnetsAnime",
   "Trackers",
-	"ConsoleLog"
+  "ConsoleLog"
 ];
 
 for(let name of modulesToLoad) {
-	let pathName = './modules/' + name.toLowerCase();
-	global[name] = require(pathName);
+  let pathName = './modules/' + name.toLowerCase();
+  global[name] = require(pathName);
 }
 for(let name of [...schemas, ...restSchemas]) {
-	let pathName = './modules/schemas/' + name.toLowerCase();
-	global[name] = mongoose.fromClass(require(pathName));
+  let pathName = './modules/schemas/' + name.toLowerCase();
+  global[name] = mongoose.fromClass(require(pathName));
 }
 
 var app = express();
@@ -52,20 +52,20 @@ app.use(compression());
 
 // Never cache request starting with "/rest/"
 app.use((req, res, next)=>{
-	if(req.url.indexOf('/rest/') >= 0) {
-		let blacklist = [ '/rest/listanime/' ];
-		if (blacklist.indexOf(req.url) == -1) {
-			res.set("Cache-Control", "no-store, must-revalidate");
-		} else {
-			res.set("Cache-Control", "public, max-age=3600");
-		}
-	}
-	next();
+  if(req.url.indexOf('/rest/') >= 0) {
+    let blacklist = [ '/rest/listanime/' ];
+    if (blacklist.indexOf(req.url) == -1) {
+      res.set("Cache-Control", "no-store, must-revalidate");
+    } else {
+      res.set("Cache-Control", "public, max-age=3600");
+    }
+  }
+  next();
 });
 
 // Create restroutes to selected mongoose models
 for(let name of restSchemas) {
-	new Restrouter(app, global[name]);
+  new Restrouter(app, global[name]);
 }
 new Loginhandler(app);
 
@@ -73,44 +73,44 @@ app.use(express.static('www'));
 
 global.getHtml = function (cb, options, errCb) {
 
-	function doRequest(obj, func, errCb) {
-		http.request(options, function(response) {
-			let content = "";
-			response.setEncoding("utf8");
-			response.on("error", (err) => console.log(err));
-			response.on("data", (chunk) => { content += chunk; });
-			response.on("end", () => {
-				if(response.statusCode == 200) {
-					cb(content);
-				} else if (response.statusCode == 301 && numRedirectsLeft-- > 0) {
-					options.path = response.headers.location;
-					console.log('redirected to', options.path);
-					doRequest(cb, options);
-				} else {
-					console.log('HTTP statusCode:', response.statusCode);
-					errCb && errCb();
-				}
-			});
-		}).end();
-	}
+  function doRequest(obj, func, errCb) {
+    http.request(options, function(response) {
+      let content = "";
+      response.setEncoding("utf8");
+      response.on("error", (err) => console.log(err));
+      response.on("data", (chunk) => { content += chunk; });
+      response.on("end", () => {
+        if(response.statusCode == 200) {
+          cb(content);
+        } else if (response.statusCode == 301 && numRedirectsLeft-- > 0) {
+          options.path = response.headers.location;
+          console.log('redirected to', options.path);
+          doRequest(cb, options);
+        } else {
+          console.log('HTTP statusCode:', response.statusCode);
+          errCb && errCb();
+        }
+      });
+    }).end();
+  }
 
-	let numRedirectsLeft = 3;
-	doRequest(cb, options, errCb);
+  let numRedirectsLeft = 3;
+  doRequest(cb, options, errCb);
 }
 
 app.get('/get-shows/:username/:password', getshows);
 app.get('/get-shows', getshows);
 
 app.get('*',(req, res)=>{
-	res.sendFile(__dirname + '/www/index.html');
+  res.sendFile(__dirname + '/www/index.html');
 });
 
 function monkeyPatchConsoleLog(){
-	var original = console.log;
-	console.log = function dbConsoleLog() {
-		original.apply(console, arguments);
-		new ConsoleLog({ text: util.inspect([...arguments]) }).save();
-	}
+  var original = console.log;
+  console.log = function dbConsoleLog() {
+    original.apply(console, arguments);
+    new ConsoleLog({ text: util.inspect([...arguments]) }).save();
+  }
 }
 monkeyPatchConsoleLog();
 
@@ -123,22 +123,22 @@ function onceConnected() {
   // addTrackers();
   // removeTrackers();
 
-	var anime = new HorribleSubs();
+  var anime = new HorribleSubs();
 
-	anime.loadDb()
+  anime.loadDb()
   .then(()=> { return anime.downloadShowlist() })
-	.then(()=> { return anime.downloadMagnets() })
-	.then(()=> { console.log('HorribleSubs loaded'); })
-	.then(() => {
-		console.log('HorribleSubs RSS enabled');
-		anime.readRSS();
-		setInterval(() => { anime.readRSS(); }, 600000);
-	})
-	.then(() => {
-		app.listen(3000, function() {
-			console.log('Express app listening on port 3000');
+  .then(()=> { return anime.downloadMagnets() })
+  .then(()=> { console.log('HorribleSubs loaded'); })
+  .then(() => {
+    console.log('HorribleSubs RSS enabled');
+    anime.readRSS();
+    setInterval(() => { anime.readRSS(); }, 600000);
+  })
+  .then(() => {
+    app.listen(3000, function() {
+      console.log('Express app listening on port 3000');
     });
-	});
+  });
 }
 
 async function removeTrackers(){
