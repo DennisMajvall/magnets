@@ -77,12 +77,34 @@ module.exports = class HorribleSubs {
     return isNaN(numberId) ? 0 : numberId;
   }
 
-  parseMagnets(input, showId) {
-		if (input.length < 100) return null;
+  parseMagnetBatch(input, show){
+    return new Promise((resolve) => {
+      let httpCallback = (show, data) => {
+        clearTimeout(timeoutHandle);
+        resolve(data);
+      }
+
+      let options = Object.assign({}, httpOptions, {
+        path: "/lib/getshows.php?type=batch&showid=" + show.showId
+      });
+			global.getHtml((data) => httpCallback(show, data), options);
+
+      let timeoutHandle = setTimeout(() => {
+        console.log('timeout parseMagnetBatch');
+        resolve(null);
+      }, timeoutMs);
+    });
+  }
+
+  async parseMagnets(input, show) {
+    if (input.length < 100 || input == 'DONE') {
+      input = await this.parseMagnetBatch(input, show);
+      if (input.length < 100) return null;
+    }
     let $ = cheerio.load(input);
     input = $('.hs-magnet-link a');
     let result = {
-			showId: showId,
+			showId: show.showId,
 			low: [],
 			medium: [],
 			high: []
@@ -100,8 +122,14 @@ module.exports = class HorribleSubs {
 
 			let matches = text.match(/-\s+(\d+\.?\d?)(\+)?(v\d?)?.*\[.*\]/);
 			if (!matches) {
-				console.log(showId, '_', text);
-				matches = ['error', 999];
+			  matches = text.match(/(\(\d+-(\d+)\)).*\[.*\]/);
+			  if (!matches) {
+          console.log(show.showId, '_', text);
+          matches = ['error', 999];
+        } else {
+          console.log('bulk', text);
+          matches = ['bulk', matches[2]]; // [2] = highest in bulk
+        }
 			}
 			obj.episode = matches[1];
 
@@ -112,20 +140,25 @@ module.exports = class HorribleSubs {
 			result[qualityIndex].push(obj);
     });
 
-    return result;
+    if (result.high.length + result.medium.length + result.low.length > 0)
+      return result;
+    return null;
   }
 
-  saveShowlistToDb(showlist){
-		return new Promise((resolve, reject) => {
-			let countdown = showlist.length;
+  async saveShowlistToDb(showlist){
+    let oldShowList = this.listAnime.map(a => a.title);
+    showlist = showlist.filter(s => oldShowList.indexOf(s.title) == -1);
 
-			for (let show of showlist) {
-				let dbItem = new ListAnime(show);
-				dbItem.save((err) => {
-					if (--countdown == 0) resolve();
-				});
-			}
-		});
+    let countdown = showlist.length;
+    if (countdown == 0) { return Promise.resolve(); }
+
+    for (let show of showlist) {
+      console.log('saved new show:', show.title);
+      let dbItem = new ListAnime(show);
+      dbItem.save((err) => {
+        if (--countdown == 0) return Promise.resolve();
+      });
+    }
   }
 
   downloadShowlistIds(){
@@ -203,7 +236,7 @@ module.exports = class HorribleSubs {
 
 				let tryResolve = (err, show)=> {
 					if (!err)
-							console.log('saved:', show.title, 'countdown', countdown);
+            console.log('saved:', show.title, 'countdown', countdown);
 					if (--countdown == 0) {
 						clearTimeout(timeoutHandle);
 						resolve();
@@ -214,11 +247,11 @@ module.exports = class HorribleSubs {
 					if (err) { console.log(err); return; }
 					countdown = arrayShows.length;
 
-					let httpCallback = (show, data) => {
+					let httpCallback = async (show, data) => {
 						clearTimeout(timeoutHandle);
-						let magnets = this.parseMagnets(data, show.showId);
+						let magnets = await this.parseMagnets(data, show);
 						if (magnets) {
-							new MagnetsAnime(magnets).save((err) => tryResolve(err, show));
+              new MagnetsAnime(magnets).save((err) => tryResolve(err, show));
 						} else {
 							tryResolve('done');
 						}

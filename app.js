@@ -126,8 +126,9 @@ function onceConnected() {
 	var anime = new HorribleSubs();
 
 	anime.loadDb()
-	// .then(()=> { return anime.downloadMagnets() })
-	// .then(()=> { console.log('HorribleSubs loaded'); })
+  .then(()=> { return anime.downloadShowlist() })
+	.then(()=> { return anime.downloadMagnets() })
+	.then(()=> { console.log('HorribleSubs loaded'); })
 	.then(() => {
 		console.log('HorribleSubs RSS enabled');
 		anime.readRSS();
