@@ -1,5 +1,10 @@
-[repeat shows, show]
-  <div>
-    <a href="${show.slug}" _id="${show._id}">${show.title}</a>
-  </div>
-[endrepeat]
+<div>
+  <input id="searchInput" type="text" class="form-control spaced-bottom" placeholder="Search"/>
+</div>
+<div id="search-list">
+  [repeat shows, show]
+    <div>
+      <a href="${show.slug}" _id="${show._id}">${show.title}</a>
+    </div>
+  [endrepeat]
+</div>
