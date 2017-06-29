@@ -1,18 +1,6 @@
 var nodeSass = require('node-sass'),
     fs = require('fs');
 
-/*  EXAMPLE CONFIG
-"sass": {
-  "compileAtBootup": true,
-  "watch": true,
-  "arguments": {
-    "file": "../sass/all.scss",
-    "outFile": "./client/css/all.css",
-    "outputStyle": "compressed"
-  }
-}
-*/
-
 module.exports = class Sass {
   constructor(config){
     this.config = config;
@@ -64,5 +52,9 @@ module.exports = class Sass {
   getFormattedTime(){
     let d = new Date();
     return d.getHours() + ':' + d.getMinutes() + ':' + d.getSeconds();
+  }
+
+  reportChange() {
+    console.log("SASS files changed, new CSS generated...");
   }
 }

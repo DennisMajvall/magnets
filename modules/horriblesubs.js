@@ -17,6 +17,8 @@ module.exports = class HorribleSubs {
 
   constructor(){
     this.hasLoadedDb = false;
+    this.magnetsAnime = [];
+    this.listAnime = [];
   }
 
   async loadDb() {
@@ -156,6 +158,7 @@ module.exports = class HorribleSubs {
       console.log('saved new show:', show.title);
       let dbItem = new ListAnime(show);
       dbItem.save((err) => {
+        if (err) return Promise.reject('saveShowlistToDb failed to save' + show.title + ' ' + err);
         if (--countdown == 0) return Promise.resolve();
       });
     }
@@ -176,6 +179,11 @@ module.exports = class HorribleSubs {
       ListAnime.find({}, (err, arrayShows) => {
         if (err) { console.log(err); return; }
         countdown = arrayShows.length;
+
+        if (countdown == 0) {
+          console.log('downloadShowlistIds could not run, ListAnime collection is empty');
+          return Promise.resolve();
+        }
 
         let httpCallback = (show, data) => {
           show.showId = this.parseShowlistId(data);
@@ -246,6 +254,8 @@ module.exports = class HorribleSubs {
         ListAnime.find({showId: { $gt: 0, $nin: loadedIds} }, (err, arrayShows) => {
           if (err) { console.log(err); return; }
           countdown = arrayShows.length;
+
+          console.log(arrayShows, countdown);
 
           let httpCallback = async (show, data) => {
             clearTimeout(timeoutHandle);
