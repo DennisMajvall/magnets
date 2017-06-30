@@ -127,6 +127,7 @@ function onceConnected() {
 
   anime.loadDb()
   .then(()=> { return anime.downloadShowlist() })
+  .then(()=> { return anime.downloadShowlistIds() })
   .then(()=> { return anime.downloadMagnets() })
   .then(()=> { console.log('HorribleSubs loaded'); })
   .then(() => {
@@ -169,7 +170,7 @@ async function addTrackers(){
 
   function everyMagnet(m, qual){
     for (let h of m[qual]){
-      if (h.magnet.indexOf('magnet:?' != 0))
+      if (h.magnet.indexOf('magnet:?') != 0)
         continue;
 
       let splitted = h.magnet.split('&tr=').splice(1);
