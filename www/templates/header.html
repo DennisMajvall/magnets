@@ -1,15 +1,15 @@
 <div class="container-fluid">
   <div class="row">
-    <div class="col-6 col-md-4 col-lg-3 user-box">
-      <br>
-      [if !login.user]
-        <div class="col-12">
-          <div class="form-group">
-            <input id="username" class="form-control" placeholder="Username" type="text">
-          </div>
-        </div>
+    <div class="col-6 col-md-4 col-lg-3 user-box pt-2">
 
-        <div class="form-group">
+      [if !login.user]
+        <div class="row">
+          <div class="col-12">
+            <div class="form-group">
+              <input id="username" class="form-control" placeholder="Username" type="text">
+            </div>
+          </div>
+
           <div class="col-6 col-md-8 col-lg-8">
             <input id="password" class="form-control" placeholder="Password" type="text">
           </div>
@@ -28,7 +28,7 @@
     </div>
 
     <div class="col-2 col-md-4 col-lg-6">
-      <a href="/" class="text-center"><h1>Magnets</h1></a>
+      <a href="/"><h1 class="text-center pt-4">Magnets</h1></a>
       <div class="get-shows"></div>
     </div>
   </div>
