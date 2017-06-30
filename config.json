@@ -1,0 +1,12 @@
+{
+  "sass":{
+    "compileAtBootup": true,
+    "watch": true,
+    "arguments":{
+      "watchFolder": "./sass",
+      "file": "./sass/all.scss",
+      "outFile": "./www/css/all.css",
+      "outputStyle": "uncompressed"
+    }
+  }
+}

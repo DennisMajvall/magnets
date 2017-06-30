@@ -1,18 +1,6 @@
 var nodeSass = require('node-sass'),
     fs = require('fs');
 
-/*  EXAMPLE CONFIG
-"sass": {
-  "compileAtBootup": true,
-  "watch": true,
-  "arguments": {
-    "file": "../sass/all.scss",
-    "outFile": "./client/css/all.css",
-    "outputStyle": "compressed"
-  }
-}
-*/
-
 module.exports = class Sass {
   constructor(config){
     this.config = config;

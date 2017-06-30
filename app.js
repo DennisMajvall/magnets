@@ -8,6 +8,8 @@ var util = require('util');
 var mongoose = require('mongoose');
 var sha1 = require('sha1');
 var getshows = require('./modules/getshows');
+var Sass = require('./modules/sass');
+var config = require('./config.json');
 require('mongoosefromclass')(mongoose);
 
 global.mongoose = mongoose;
@@ -70,6 +72,9 @@ for(let name of restSchemas) {
 new Loginhandler(app);
 
 app.use(express.static('www'));
+
+// Start Sass
+new Sass(config.sass);
 
 global.getHtml = function (cb, options, errCb) {
 
