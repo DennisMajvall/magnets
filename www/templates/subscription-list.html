@@ -1,7 +1,7 @@
-<h2 class="text-center">Your subscriptions</h1>
+<h2 class="text-center">Your subscriptions</h2>
 [if shows && shows.length]
   [repeat shows, show]
-    <div class="col-sm-6 spaced-bottom">
+    <div class="col-md-6 spaced-bottom">
       <a href="${show.slug}" _id="${show._id}">${show.title}</a>
     </div>
   [endrepeat]

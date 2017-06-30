@@ -5,13 +5,13 @@
   "main": "app.js",
   "dependencies": {
     "body-parser": "*",
-    "bootstrap": "*",
     "cheerio": "^0.22.0",
     "compression": "*",
     "cookie-parser": "*",
     "express": "*",
-    "mongoose": "*",
+    "mongoose": "^4.10.8",
     "mongoosefromclass": "*",
+    "node-sass": "^4.5.3",
     "sha1": "*"
   }
 }
