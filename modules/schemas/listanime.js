@@ -2,10 +2,10 @@ module.exports = class ListAnime {
 
   schema(){
     return {
-			showId: {type: Number, required: true, unique: true },
+      showId: Number,
       slug: String,
-      title: String,
-			timeCreated: {type: Date, default: Date.now}
+      title: {type: String, required: true, unique: true },
+      timeCreated: {type: Date, default: Date.now}
     };
   }
 
