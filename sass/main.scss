@@ -1,21 +1,26 @@
 a {
-  outline: 0; }
+  outline: 0;
+}
 
 .slim-input {
-  width: 50px; }
+  width: 50px;
+}
 
 .header {
   height: 110px;
-  overflow-y: hidden; }
+  overflow-y: hidden;
+}
 
 scrollbar {
   max-height: calc(100vh - 110px);
   overflow: hidden;
   padding-left: 0 !important;
-  padding-right: 0 !important; }
-  scrollbar > div {
+  padding-right: 0 !important;
+  > div {
     max-height: calc(100vh - 110px);
-    overflow: auto; }
+    overflow: auto;
+  }
+}
 
 @media screen and (min-width: 768px) {
   scrollbar {
@@ -23,50 +28,66 @@ scrollbar {
     height: calc(100vh - 110px);
     overflow: hidden;
     padding-left: 15px !important;
-    padding-right: 15px !important; }
-    scrollbar > div {
+    padding-right: 15px !important;
+    > div {
       position: absolute !important;
       top: 0;
       left: 15px;
       right: -17px;
       max-height: calc(100vh - 110px);
       overflow-y: scroll;
-      border-right: 5px solid transparent; }
-    scrollbar:last-child > div {
-      padding-right: 15px; } }
+      border-right: 5px solid rgba(0, 0, 0, 0);
+    }
+    &:last-child > div {
+      padding-right: 15px;
+    }
+  }
+}
 
 h2 {
   margin-top: 0;
-  margin-bottom: 10px; }
+  margin-bottom: 10px;
+}
 
 .no-margin {
-  margin: 0; }
+  margin: 0;
+}
 
 .spaced {
   margin-top: 10px;
-  margin-bottom: 10px; }
+  margin-bottom: 10px;
+}
 
 .spaced-bottom {
-  margin-bottom: 10px; }
+  margin-bottom: 10px;
+}
 
 #username {
-  max-width: 188px; }
+  max-width: 188px;
+}
 
 .pointer {
-  cursor: pointer; }
+  cursor: pointer;
+}
 
 /* Let's get this party started */
+
 ::-webkit-scrollbar {
-  width: 6px; }
+  width: 6px;
+}
 
 /* Track */
+
 ::-webkit-scrollbar-track {
-  border-radius: 7px; }
+  border-radius: 7px;
+}
 
 /* Handle */
+
 ::-webkit-scrollbar-thumb {
   border-radius: 7px;
-  background: rgba(35, 35, 35, 0.2); }
+  background: rgba(35, 35, 35, 0.2);
+}
 
 #password {
   color: transparent;
@@ -76,6 +97,8 @@ h2 {
   -khtml-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
-  user-select: none; }
-  #password::-moz-selection, #password::selection {
-    background: transparent; }
+  user-select: none;
+  &::-moz-selection, &::selection {
+    background: transparent;
+  }
+}
