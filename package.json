@@ -5,7 +5,6 @@
   "main": "app.js",
   "dependencies": {
     "body-parser": "*",
-    "bootstrap": "^4.0.0-alpha.6",
     "cheerio": "^0.22.0",
     "compression": "*",
     "cookie-parser": "*",
@@ -13,7 +12,6 @@
     "mongoose": "^4.10.8",
     "mongoosefromclass": "*",
     "node-sass": "^4.5.3",
-    "sha1": "*",
-    "tether": "^1.4.0"
+    "sha1": "*"
   }
 }
