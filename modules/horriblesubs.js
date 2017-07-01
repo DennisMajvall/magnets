@@ -19,6 +19,7 @@ module.exports = class HorribleSubs {
     this.hasLoadedDb = false;
     this.magnetsAnime = [];
     this.listAnime = [];
+    this.nonExistantAnimes = [];
   }
 
   async loadDb() {
@@ -293,16 +294,17 @@ module.exports = class HorribleSubs {
       let magnet = $(el).find('link')[0].next.data;
       let fullTitle = $(el).find('title').text();
 
-      let regexParts = fullTitle.match(/\]\s(.*[^S\d])(S*\d*) - (\d+)+.*\[(\d*p)\]/);
+      let regexParts = fullTitle.match(/\]\s(.*[^S\d])(S*\d*)( - |[\s]+\(\d*-)(\d+)+.*\[(\d*p)\]/);
       if (!regexParts) {
         console.log('RSS could not regex: ', fullTitle);
         return;
       }
       regexParts = regexParts.map((s) => {return (s||'').trim()});
       let title = regexParts[1]; // Ex 'Shingeki No Kyojin'
-      let season = regexParts[2]; // Ex: 'S2' or '2'
-      let episode = regexParts[3]; // Ex '37'
-      let quality = regexParts[4]; // Ex '1080p'
+      let season = regexParts[2]; // Ex: 'S2' or '2' or ''
+      // part 3 is just the spaces/dashes between 2 and 4
+      let episode = regexParts[4]; // Ex '37'
+      let quality = regexParts[5]; // Ex '1080p'
 
       let titleWithSeason = title + ' ' + season;
 
@@ -363,6 +365,9 @@ module.exports = class HorribleSubs {
             show = show[0];
             newMagnets.showId = show.showId;
             return MagnetsAnime.find({showId: show.showId}).exec();
+          } else if (this.nonExistantAnimes.indexOf(showTitle) == -1){
+            this.nonExistantAnimes.push(showTitle)
+            console.log('RSS received magnet that\'s not in listanimes:', showTitle);
           }
         })
         .then((magnet) => {
