@@ -130,10 +130,11 @@ function onceConnected() {
 
   var anime = new HorribleSubs();
 
-  anime.loadDb()
+  Promise.resolve()
   .then(()=> { return anime.downloadShowlist() })
   .then(()=> { return anime.downloadShowlistIds() })
   .then(()=> { return anime.downloadMagnets() })
+  .then(()=> { return anime.downloadShowlistContent() })
   .then(()=> { console.log('HorribleSubs loaded'); })
   .then(() => {
     console.log('HorribleSubs RSS enabled');

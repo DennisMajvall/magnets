@@ -16,25 +16,7 @@ function sleep(ms = 0) {
 module.exports = class HorribleSubs {
 
   constructor(){
-    this.hasLoadedDb = false;
-    this.magnetsAnime = [];
-    this.listAnime = [];
     this.nonExistantAnimes = [];
-  }
-
-  async loadDb() {
-    if (!this.hasLoadedDb) {
-      return MagnetsAnime.find({}).exec()
-      .then((data)=> { this.magnetsAnime = data; })
-      .then(() => {
-        return ListAnime.find({}).exec()
-        .then((data)=> { this.listAnime = data; })
-      })
-      .then(() => {
-        this.hasLoadedDb = true;
-      })
-    }
-    Promise.resolve('Success');
   }
 
   parseShowlist(input) {
@@ -78,6 +60,18 @@ module.exports = class HorribleSubs {
 
     let numberId = parseInt(input.html().match(/\d+/)[0], 10);
     return isNaN(numberId) ? 0 : numberId;
+  }
+
+  parseShowlistDescription(input) {
+    if (input.length < 100) return null;
+    let $ = cheerio.load(input)
+    return $('.entry-content .series-desc').text();
+  }
+
+  parseShowlistThumbnail(input) {
+    if (input.length < 100) return null;
+    let $ = cheerio.load(input)
+    return $('.entry-content .series-image img').attr('src');
   }
 
   parseMagnetBatch(input, show){
@@ -149,7 +143,8 @@ module.exports = class HorribleSubs {
   }
 
   async saveShowlistToDb(showlist){
-    let oldShowList = this.listAnime.map(a => a.title);
+    let loadedShowlist = await ListAnime.find({});
+    let oldShowList = loadedShowlist.map(a => a.title);
     showlist = showlist.filter(s => oldShowList.indexOf(s.title) == -1);
 
     let countdown = showlist.length;
@@ -177,14 +172,10 @@ module.exports = class HorribleSubs {
         }
       };
 
-      ListAnime.find({}, (err, arrayShows) => {
+      ListAnime.find({showId: {$exists: false}}, (err, arrayShows) => {
         if (err) { console.log(err); return; }
         countdown = arrayShows.length;
-
-        if (countdown == 0) {
-          console.log('downloadShowlistIds could not run, ListAnime collection is empty');
-          return Promise.resolve();
-        }
+        if (countdown == 0) { resolve(); return Promise.resolve(); }
 
         let httpCallback = (show, data) => {
           show.showId = this.parseShowlistId(data);
@@ -192,11 +183,6 @@ module.exports = class HorribleSubs {
         }
 
         for (let show of arrayShows) {
-          if (show.showId) {
-            tryResolve();
-            continue;
-          }
-
           let options = Object.assign({}, httpOptions, { path: show.slug });
           global.getHtml(
             (data) => httpCallback(show, data),
@@ -235,52 +221,51 @@ module.exports = class HorribleSubs {
   }
 
   async downloadMagnets(){
-    return this.loadDb()
-    .then(() => {
+    let loadedMagnets = await MagnetsAnime.find({});
+    let loadedIds = loadedMagnets.map(m => m.showId);
 
-      let loadedIds = this.magnetsAnime.map(m => m.showId);
+    return new Promise((resolve, reject) => {
+      let countdown = 0;
 
-      return new Promise((resolve, reject) => {
-        let countdown = 0;
+      let tryResolve = (err, show)=> {
+        if (!err)
+          console.log('saved:', show.title, 'countdown:', countdown);
+        if (--countdown == 0) {
+          clearTimeout(timeoutHandle);
+          if (err != 'done') { console.log('downloadMagnets done, countdown:', countdown); }
+          resolve();
+        }
+      };
 
-        let tryResolve = (err, show)=> {
-          if (!err)
-            console.log('saved:', show.title, 'countdown', countdown);
-          if (--countdown == 0) {
-            clearTimeout(timeoutHandle);
-            resolve();
+      ListAnime.find({showId: { $gt: 0, $nin: loadedIds} }, (err, arrayShows) => {
+        if (err) { console.log(err); return; }
+        countdown = arrayShows.length;
+        if (countdown == 0) { clearTimeout(timeoutHandle); resolve(); return; }
+
+        let httpCallback = async (show, data) => {
+          clearTimeout(timeoutHandle);
+          let magnets = await this.parseMagnets(data, show);
+          if (magnets) {
+            new MagnetsAnime(magnets).save((err) => tryResolve(err, show));
+          } else {
+            tryResolve('done');
           }
-        };
+        }
+        if (!arrayShows.length) {
+          resolve();
+        }
 
-        ListAnime.find({showId: { $gt: 0, $nin: loadedIds} }, (err, arrayShows) => {
-          if (err) { console.log(err); return; }
-          countdown = arrayShows.length;
-
-          let httpCallback = async (show, data) => {
-            clearTimeout(timeoutHandle);
-            let magnets = await this.parseMagnets(data, show);
-            if (magnets) {
-              new MagnetsAnime(magnets).save((err) => tryResolve(err, show));
-            } else {
-              tryResolve('done');
-            }
-          }
-          if (!arrayShows.length) {
-            resolve();
-          }
-
-          for (let show of arrayShows) {
-            let options = Object.assign({}, httpOptions, {
-              path: "/lib/getshows.php?type=show&nextid=0&showid=" + show.showId
-            });
-            global.getHtml((data) => httpCallback(show, data), options);
-          }
-        });
-
-        let timeoutHandle = setTimeout(() => {
-          reject('timeout downloadMagnets, countdown: ' + countdown);
-        }, timeoutMagnetsMs);
+        for (let show of arrayShows) {
+          let options = Object.assign({}, httpOptions, {
+            path: "/lib/getshows.php?type=show&nextid=0&showid=" + show.showId
+          });
+          global.getHtml((data) => httpCallback(show, data), options);
+        }
       });
+
+      let timeoutHandle = setTimeout(() => {
+        reject('timeout downloadMagnets, countdown: ' + countdown);
+      }, timeoutMagnetsMs);
     });
   }
 
@@ -391,5 +376,44 @@ module.exports = class HorribleSubs {
 
     let options = Object.assign({}, httpOptions, { path: "/rss.php?res=all" });
     global.getHtml((data) => httpCallback(data), options);
+  }
+
+  async downloadShowlistContent(){
+    let arrayShows = await ListAnime.find({"description": {"$exists": false}});
+    let countdown = arrayShows.length;
+    if (!countdown){ return Promise.resolve(); }
+
+    return new Promise((resolve, reject) => {
+      let tryResolve = (err, show)=> {
+        if (err) reject('downloadShowlistContent failed to save');
+        if (show) console.log('saved content of', show.title, 'countdown:', countdown);
+        if (--countdown == 0) {
+          clearTimeout(timeoutHandle);
+          resolve();
+        }
+      };
+
+      let httpCallback = (show, data) => {
+        show.description = this.parseShowlistDescription(data);
+        show.image = this.parseShowlistThumbnail(data);
+        show.description && show.image ? show.save(tryResolve) : reject(show.slug + 'could not get Content');
+      }
+
+      for (let show of arrayShows) {
+        let options = Object.assign({}, httpOptions, { path: show.slug });
+        global.getHtml(
+          (data) => httpCallback(show, data),
+          options,
+          ()=>{
+            console.log('error html, countdown:', countdown, show.title);
+            tryResolve();
+          }
+        );
+      }
+
+      let timeoutHandle = setTimeout(() => {
+        reject('timeout downloadShowlistIds, countdown: ' + countdown);
+      }, timeoutIdsMs);
+    });
   }
 }
