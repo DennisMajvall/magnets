@@ -1,0 +1,28 @@
+.header {
+  height: 110px;
+  overflow-y: hidden;
+}
+
+#username { max-width: 188px; }
+
+#password {
+  color: transparent;
+  text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  &::-moz-selection, &::selection {
+    background: transparent;
+  }
+}
+
+.user-box {
+  .form-group, #password { margin-bottom: 0.5rem; }
+  #login {
+    line-height: 0;
+    max-height: 38px;
+  }
+}
