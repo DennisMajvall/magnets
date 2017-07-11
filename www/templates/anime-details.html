@@ -1,8 +1,12 @@
-<div class="col-12">
+<div class="col-12 anime-details">
   <h2>${show.title}</h2>
   <div class="spaced-bottom">
     <subscriber-status></subscriber-status>
   </div>
   <a href="http://horriblesubs.info${show.slug}" target="_blank">Horrible Subs id ${show.showId}</a>
+  <div class="description pointer minimized" title="Click to show/hide">
+    <div class="img-wrapper"><img src="${show.image}"/></div>
+    ${show.description}
+  </div>
   <magnets class="row"></magnets>
 </div>

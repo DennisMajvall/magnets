@@ -1,11 +1,3 @@
-a {
-  outline: 0;
-}
-
-.slim-input {
-  width: 50px;
-}
-
 .header {
   height: 110px;
   overflow-y: hidden;
@@ -16,19 +8,19 @@ scrollbar {
   overflow: hidden;
   padding-left: 0 !important;
   padding-right: 0 !important;
+
   > div {
     max-height: calc(100vh - 110px);
     overflow: auto;
   }
-}
 
-@media screen and (min-width: 768px) {
-  scrollbar {
+  @media screen and (min-width: 768px) {
     position: relative;
     height: calc(100vh - 110px);
     overflow: hidden;
     padding-left: 15px !important;
     padding-right: 15px !important;
+
     > div {
       position: absolute !important;
       top: 0;
@@ -49,41 +41,24 @@ h2 {
   margin-bottom: 10px;
 }
 
-.no-margin {
-  margin: 0;
-}
-
 .spaced {
   margin-top: 10px;
   margin-bottom: 10px;
 }
 
-.spaced-bottom {
-  margin-bottom: 10px;
-}
-
-#username {
-  max-width: 188px;
-}
-
-.pointer {
-  cursor: pointer;
-}
+a { outline: 0; }
+.hidden { display: none; }
+.slim-input { width: 50px; }
+.no-margin { margin: 0; }
+.spaced-bottom { margin-bottom: 10px; }
+.pointer { cursor: pointer; }
+#username { max-width: 188px; }
 
 /* Let's get this party started */
-
-::-webkit-scrollbar {
-  width: 6px;
-}
-
+::-webkit-scrollbar { width: 6px; }
 /* Track */
-
-::-webkit-scrollbar-track {
-  border-radius: 7px;
-}
-
+::-webkit-scrollbar-track { border-radius: 7px; }
 /* Handle */
-
 ::-webkit-scrollbar-thumb {
   border-radius: 7px;
   background: rgba(35, 35, 35, 0.2);
@@ -100,5 +75,37 @@ h2 {
   user-select: none;
   &::-moz-selection, &::selection {
     background: transparent;
+  }
+}
+
+.anime-details {
+  .description {
+    overflow: auto;
+    border-radius: 8px;
+    background-color: #f5f6ff;
+    padding: 8px 15px;
+
+    &:hover { background-color: #f0f0ff; }
+
+    &.minimized {
+      overflow: hidden;
+      max-height: 190px;
+      img { height: 175px; }
+    }
+
+    p {
+      margin-bottom: 0.5rem;
+      line-height: 1.4;
+    }
+
+    .img-wrapper {
+      float: right;
+      max-width: 60%;
+      margin-left: 15px;
+      img {
+        max-width: 100%;
+        max-height: 100%;
+      }
+    }
   }
 }

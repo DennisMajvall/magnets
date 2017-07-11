@@ -7,8 +7,10 @@ class AnimeDetails {
     Rest.ListAnime.find(`find/{ slug: "${param}" }`, (shows) => {
       for (let show of shows) {
         this.show = show;
+        this.parseDescription(show);
 
         $('.middle-part').template('anime-details', { show: this.show });
+        $('.description').on('click', this.onDescriptionClick);
 
         WATCH('shows-downloaded', this.renderSubscriberTemplate, this);
         WATCH('login', this.renderSubscriberTemplate, this);
@@ -18,6 +20,14 @@ class AnimeDetails {
         this.loadMagnets();
       }
     });
+  }
+
+  onDescriptionClick(){
+    $(this).toggleClass('minimized');
+  }
+
+  parseDescription(show){
+    show.description = show.description.split('.').map(s=>`<p>${s}</p>`).join('');
   }
 
   loadMagnets(){
