@@ -2,12 +2,19 @@
   <h2 class="text-center">Your subscriptions</h2>
 
   [if shows && shows.length]
-    <div class="row">
-      [repeat shows, show]
-        <div class="col-md-6 spaced-bottom">
-          <a href="${show.slug}" _id="${show._id}">${show.title}</a>
+    <div class="row text-center">
+      <div class="col-12">
+        <div class="row">
+          [repeat shows, show]
+            <a class="thumbnail col-12 col-sm-6 col-md-4 col-xl-3 px-1 mb-2" href="${show.slug}">
+              <div class="img-wrapper">
+                <img src="${show.image}"/>
+                <span>${show.title}</span>
+              </div>
+            </a>
+          [endrepeat]
         </div>
-      [endrepeat]
+      </div>
     </div>
   [else if !user]
     <p>This feature is only available for logged in users.</p>
