@@ -1,5 +1,5 @@
-var cheerio = require('cheerio');
-var fs = require('fs');
+const cheerio = require('cheerio');
+const scraperjs = require ('scraperjs');
 
 const timeoutMs = 10000;
 const timeoutIdsMs = timeoutMs * 2;
@@ -57,10 +57,10 @@ module.exports = class HorribleSubs {
     if (input.length < 100) return 0;
     let $ = cheerio.load(input)
     input = $('.entry-content > p > script');
+    input = input.html() || '';
+    input = input.match(/\d+/) || []
 
-    let numberId = input.html().match(/\d+/) || [];
-    numberId = parseInt(numberId[0], 10);
-    return isNaN(numberId) ? 0 : numberId;
+    return parseInt(input[0], 10) || 0;
   }
 
   parseShowlistDescription(input) {
@@ -144,8 +144,7 @@ module.exports = class HorribleSubs {
   }
 
   async saveShowlistToDb(showlist){
-    let loadedShowlist = await ListAnime.find({});
-    let oldShowList = loadedShowlist.map(a => a.title);
+    let oldShowList = (await ListAnime.find({})).map(a => a.title);
     showlist = showlist.filter(s => oldShowList.indexOf(s.title) == -1);
 
     let countdown = showlist.length;
