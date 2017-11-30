@@ -58,7 +58,8 @@ module.exports = class HorribleSubs {
     let $ = cheerio.load(input)
     input = $('.entry-content > p > script');
 
-    let numberId = parseInt(input.html().match(/\d+/)[0], 10);
+    let numberId = input.html().match(/\d+/) || [];
+    numberId = parseInt(numberId[0], 10);
     return isNaN(numberId) ? 0 : numberId;
   }
 
