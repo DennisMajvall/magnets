@@ -4,10 +4,7 @@ const scraperjs = require ('scraperjs');
 const timeoutMs = 10000;
 const timeoutIdsMs = timeoutMs * 2;
 const timeoutMagnetsMs = timeoutMs * 3;
-const httpOptions = {
-  host: "horriblesubs.info",
-  port: 80
-};
+const website = 'http://horriblesubs.info';
 
 function sleep(ms = 0) {
   return new Promise(r => setTimeout(r, ms));
@@ -17,6 +14,12 @@ module.exports = class HorribleSubs {
 
   constructor(){
     this.nonExistantAnimes = [];
+  }
+
+  async downloadUrl(url){
+    let scraper = scraperjs.StaticScraper.create(url);
+    let html = await scraper.scrape(($)=>{ return $.html(); });
+    return html;
   }
 
   parseShowlist(input) {
@@ -147,126 +150,81 @@ module.exports = class HorribleSubs {
     let oldShowList = (await ListAnime.find({})).map(a => a.title);
     showlist = showlist.filter(s => oldShowList.indexOf(s.title) == -1);
 
-    let countdown = showlist.length;
-    if (countdown == 0) { return Promise.resolve(); }
-
     for (let show of showlist) {
-      console.log('saved new show:', show.title);
-      let dbItem = new ListAnime(show);
-      dbItem.save((err) => {
-        if (err) return Promise.reject('saveShowlistToDb failed to save' + show.title + ' ' + err);
-        if (--countdown == 0) return Promise.resolve();
+      await new ListAnime(show).save((err) => {
+        err && console.log('saveShowlistToDb failed to save', show.title + '.', err);
+        !err && console.log('saved new show:', show.title);
       });
     }
   }
 
-  downloadShowlistIds(){
-    return new Promise((resolve, reject) => {
-      let countdown = 0;
+  async downloadShowlistIds(){
+    let arrayShows = await ListAnime.find({showId: {$exists: false}});
 
-      let tryResolve = (err)=> {
-        if (err) reject('downloadShowlistIds failed to save');
-        if (--countdown == 0) {
-          clearTimeout(timeoutHandle);
-          resolve();
-        }
-      };
+    async function downloadShowId(show){
+      let html = await this.downloadUrl(website + show.slug);
+      show.showId = this.parseShowlistId(html);
+      show.showId && console.log('Saved showId', show.showId);
+      show.showId && (await show.save());
+      !show.showId && console.log(show.slug, 'could not get showID');
+    }
 
-      ListAnime.find({showId: {$exists: false}}, (err, arrayShows) => {
-        if (err) { console.log(err); return; }
-        countdown = arrayShows.length;
-        if (countdown == 0) { resolve(); return Promise.resolve(); }
+    let arrayPromises = [];
+    for (let show of arrayShows) {
+      arrayPromises.push(downloadShowId.call(this, show));
+    }
 
-        let httpCallback = (show, data) => {
-          show.showId = this.parseShowlistId(data);
-          show.showId ? show.save(tryResolve) : reject(show.slug + 'could not get ID');
-        }
-
-        for (let show of arrayShows) {
-          let options = Object.assign({}, httpOptions, { path: show.slug });
-          global.getHtml(
-            (data) => httpCallback(show, data),
-            options,
-            ()=>{
-              tryResolve();
-              console.log('countdown:', countdown, show.title);
-            }
-          );
-        }
-      });
-
-      let timeoutHandle = setTimeout(() => {
-        reject('timeout downloadShowlistIds, countdown: ' + countdown);
-      }, timeoutIdsMs);
-
-    });
+    await Promise.all(arrayPromises);
   }
 
-  downloadShowlist(){
-    return new Promise((resolve, reject) => {
-      let options = Object.assign({}, httpOptions, { path: "/shows/" });
+  async downloadShowlist(){
+    let html = await this.downloadUrl(website + '/shows/');
+    let showlist = this.parseShowlist(html);
+    await this.saveShowlistToDb(showlist);
+  }
 
-      let doResolve = (data) => {
-        clearTimeout(timeoutHandle);
-        let showlist = this.parseShowlist(data);
-        this.saveShowlistToDb(showlist).then(resolve, reject);
+  async downloadMagnetsOfShow(show){
+    let pagination = 0;
+    let html = 'not done';
+    console.log('downloading show:', show.title || show.showId);
+
+    while (html != 'DONE') {
+      html = await this.downloadUrl(website + "/lib/getshows.php?type=show&nextid=" + pagination + "&showid=" + show.showId);
+      pagination && (!html || html == 'DONE') && console.log('no html for show:', show.title || show.showId, 'page:', pagination);
+      if (!html || html == 'DONE') { break; }
+
+      let magnets = await this.parseMagnets(html, show);
+      if (magnets) {
+        let saveResult = await new MagnetsAnime(magnets).save();
+        console.log('saveResult', saveResult);
+         // ((err) => {
+          // err && console.log('could not save:', show.title);
+          // !err && console.log('saved:', show.title);
+        // });
       }
 
-      let timeoutHandle = setTimeout(() => {
-        reject('timeout downloadShowlist');
-      }, timeoutMs);
-
-      global.getHtml(doResolve, options);
-    });
+      // limit: 5000 episodes.
+      if (++pagination > 10) { break; }
+      break;
+    }
+    console.log('show done:', show.title || show.showId);
   }
 
   async downloadMagnets(){
-    let loadedMagnets = await MagnetsAnime.find({});
-    let loadedIds = loadedMagnets.map(m => m.showId);
+    let loadedIds = (await MagnetsAnime.find({})).map(m => m.showId);
 
-    return new Promise((resolve, reject) => {
-      let countdown = 0;
+    let arrayShows = await ListAnime.find({showId: { $gt: 0, $nin: loadedIds} });
 
-      let tryResolve = (err, show)=> {
-        if (!err)
-          console.log('saved:', show.title, 'countdown:', countdown);
-        if (--countdown == 0) {
-          clearTimeout(timeoutHandle);
-          if (err != 'done') { console.log('downloadMagnets done, countdown:', countdown); }
-          resolve();
-        }
-      };
+    arrayShows = arrayShows.slice(0, 1);
+    console.log('waiting for', arrayShows.length, 'promises.');
 
-      ListAnime.find({showId: { $gt: 0, $nin: loadedIds} }, (err, arrayShows) => {
-        if (err) { console.log(err); return; }
-        countdown = arrayShows.length;
-        if (countdown == 0) { clearTimeout(timeoutHandle); resolve(); return; }
+    let arrayPromises = [];
+    for (let show of arrayShows) {
+      arrayPromises.push(this.downloadMagnetsOfShow.call(this, show));
+    }
 
-        let httpCallback = async (show, data) => {
-          clearTimeout(timeoutHandle);
-          let magnets = await this.parseMagnets(data, show);
-          if (magnets) {
-            new MagnetsAnime(magnets).save((err) => tryResolve(err, show));
-          } else {
-            tryResolve('done');
-          }
-        }
-        if (!arrayShows.length) {
-          resolve();
-        }
 
-        for (let show of arrayShows) {
-          let options = Object.assign({}, httpOptions, {
-            path: "/lib/getshows.php?type=show&nextid=0&showid=" + show.showId
-          });
-          global.getHtml((data) => httpCallback(show, data), options);
-        }
-      });
-
-      let timeoutHandle = setTimeout(() => {
-        reject('timeout downloadMagnets, countdown: ' + countdown);
-      }, timeoutMagnetsMs);
-    });
+    await Promise.all(arrayPromises);
   }
 
   async parseRSS(input) {
