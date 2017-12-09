@@ -59,7 +59,7 @@ module.exports = class HorribleSubs {
   parseShowlistId(input) {
     if (input.length < 100) return 0;
     let $ = cheerio.load(input)
-    input = $('.entry-content > p > script');
+    input = $('.entry-content > p > script[type="text/javascript"]');
     input = input.html() || '';
     input = input.match(/\d+/) || []
 
@@ -172,6 +172,7 @@ module.exports = class HorribleSubs {
     let arrayPromises = [];
     for (let show of arrayShows) {
       arrayPromises.push(downloadShowId.call(this, show));
+      await sleep(100);
     }
 
     await Promise.all(arrayPromises);
@@ -186,7 +187,7 @@ module.exports = class HorribleSubs {
   async downloadMagnetsOfShow(show){
     let pagination = 0;
     let html = 'not done';
-    console.log('downloading show:', show.title || show.showId);
+    // console.log('downloading show:', show.title || show.showId);
 
     while (html != 'DONE') {
       html = await this.downloadUrl(website + "/lib/getshows.php?type=show&nextid=" + pagination + "&showid=" + show.showId);
@@ -195,36 +196,29 @@ module.exports = class HorribleSubs {
 
       let magnets = await this.parseMagnets(html, show);
       if (magnets) {
-        let saveResult = await new MagnetsAnime(magnets).save();
-        console.log('saveResult', saveResult);
-         // ((err) => {
-          // err && console.log('could not save:', show.title);
-          // !err && console.log('saved:', show.title);
-        // });
+        let saveResult = await (new MagnetsAnime(magnets)).save()
+          .catch(e=>console.log('could not save:', show.title, e))
+          .then(()=>console.log('saved:', show.title));
       }
 
       // limit: 5000 episodes.
       if (++pagination > 10) { break; }
-      break;
     }
-    console.log('show done:', show.title || show.showId);
+    return true;
   }
 
   async downloadMagnets(){
     let loadedIds = (await MagnetsAnime.find({})).map(m => m.showId);
-
     let arrayShows = await ListAnime.find({showId: { $gt: 0, $nin: loadedIds} });
-
-    arrayShows = arrayShows.slice(0, 1);
-    console.log('waiting for', arrayShows.length, 'promises.');
 
     let arrayPromises = [];
     for (let show of arrayShows) {
       arrayPromises.push(this.downloadMagnetsOfShow.call(this, show));
+      await sleep(100);
     }
 
-
     await Promise.all(arrayPromises);
+    console.log('downloadMagnets completed.');
   }
 
   async parseRSS(input) {
@@ -336,42 +330,30 @@ module.exports = class HorribleSubs {
     global.getHtml((data) => httpCallback(data), options);
   }
 
+  async downloadContentOfShow(show){
+    let data = await this.downloadUrl(website + show.slug);
+
+    show.description = this.parseShowlistDescription(data);
+    show.image = this.parseShowlistThumbnail(data);
+    if (show.description && show.image) {
+      await show.save()
+        .catch(e=>console.log(show.slug + 'could not get Content.', e));
+        console.log('saved content of', show.slug);
+    } else {
+      console.log('could not get description and img from:', show.slug);
+    }
+  }
+
   async downloadShowlistContent(){
     let arrayShows = await ListAnime.find({"description": {"$exists": false}});
-    let countdown = arrayShows.length;
-    if (!countdown){ return Promise.resolve(); }
 
-    return new Promise((resolve, reject) => {
-      let tryResolve = (err, show)=> {
-        if (err) reject('downloadShowlistContent failed to save');
-        if (show) console.log('saved content of', show.title, 'countdown:', countdown);
-        if (--countdown == 0) {
-          clearTimeout(timeoutHandle);
-          resolve();
-        }
-      };
+    let arrayPromises = [];
+    for (let show of arrayShows) {
+      arrayPromises.push(this.downloadContentOfShow.call(this, show));
+      await sleep(100);
+    }
 
-      let httpCallback = (show, data) => {
-        show.description = this.parseShowlistDescription(data);
-        show.image = this.parseShowlistThumbnail(data);
-        show.description && show.image ? show.save(tryResolve) : reject(show.slug + 'could not get Content');
-      }
-
-      for (let show of arrayShows) {
-        let options = Object.assign({}, httpOptions, { path: show.slug });
-        global.getHtml(
-          (data) => httpCallback(show, data),
-          options,
-          ()=>{
-            console.log('error html, countdown:', countdown, show.title);
-            tryResolve();
-          }
-        );
-      }
-
-      let timeoutHandle = setTimeout(() => {
-        reject('timeout downloadShowlistIds, countdown: ' + countdown);
-      }, timeoutIdsMs);
-    });
+    await Promise.all(arrayPromises);
   }
 }
+

@@ -102,21 +102,21 @@ async function onceConnected() {
 
   var anime = new HorribleSubs();
 
-  // await anime.downloadShowlist();
-  // await anime.downloadShowlistIds();
+  await anime.downloadShowlist();
+  await anime.downloadShowlistIds();
   await anime.downloadMagnets();
-  // await anime.downloadShowlistContent();
+  await anime.downloadShowlistContent();
 
   console.log('HorribleSubs loaded, enabling RSS');
   // anime.readRSS();
   // setInterval(() => { anime.readRSS(); }, 600000);
 
-  // await addTrackers();
+  await addTrackers();
   // await removeTrackers();
 
-  // app.listen(46375, function() {
-  //   console.log('Magnets listening on port 46375');
-  // });
+  app.listen(46375, function() {
+    console.log('Magnets listening on port 46375');
+  });
 
 }
 
