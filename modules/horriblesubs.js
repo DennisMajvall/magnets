@@ -120,6 +120,7 @@ module.exports = class HorribleSubs {
       obj.magnet = el.attribs.href;
       obj.magnet = obj.magnet.split('&tr=')[0];
       obj.magnet = obj.magnet.substr(obj.magnet.lastIndexOf(':')+1);
+      obj.magnet += el.attribs.href.split('&tr=')[1]; // add trackers.
 
       let matches = text.match(/-\s+(\d+\.?\d?)(\+)?(v\d?)?.*\[.*\]/);
       if (!matches) {
@@ -218,7 +219,6 @@ module.exports = class HorribleSubs {
     }
 
     await Promise.all(arrayPromises);
-    console.log('downloadMagnets completed.');
   }
 
   async parseRSS(input) {
@@ -267,6 +267,7 @@ module.exports = class HorribleSubs {
 
       let rawMagnetName = magnet.split('&tr=')[0];
       rawMagnetName = rawMagnetName.substr(rawMagnetName.lastIndexOf(':')+1);
+      rawMagnetName += magnet.split('&tr=')[1]; // add trackers.
 
       result[title][qualityIndex].push({
         episode: parseInt(episode, 10),
@@ -282,7 +283,10 @@ module.exports = class HorribleSubs {
     return result;
   }
 
-  readRSS(){
+  async readRSS(){
+    let html = await this.downloadUrl(website + "/rss.php?res=all");
+    let parsed = await this.parseRSS(html);
+
     let pushNonDuplicateMagnets = (oldArr, newArr) => {
       for (let newMag of newArr){
         let exists = false;
@@ -291,43 +295,41 @@ module.exports = class HorribleSubs {
       }
     }
 
-    let httpCallback = async (data) => {
-      let parsed = await this.parseRSS(data);
-      for (let showTitle in parsed){
-        let newMagnets = parsed[showTitle];
+    for (let showTitle in parsed){
+      let newMagnets = parsed[showTitle];
+      let magnet;
+      let show = await ListAnime.find({title: showTitle}).exec();
 
-        ListAnime.find({title: showTitle}).exec()
-        .then((show) => {
-          if (show && show.length) {
-            show = show[0];
-            newMagnets.showId = show.showId;
-            return MagnetsAnime.find({showId: show.showId}).exec();
-          } else if (this.nonExistantAnimes.indexOf(showTitle) == -1){
-            this.nonExistantAnimes.push(showTitle)
-            console.log('RSS received magnet that\'s not in listanimes:', showTitle);
-          }
-        })
-        .then((magnet) => {
-          if (magnet == undefined) return;
+      if (show && show.length) {
+        show = show[0];
+        newMagnets.showId = show.showId;
+        magnet = await MagnetsAnime.find({showId: show.showId}).exec();
+      } else if (this.nonExistantAnimes.indexOf(showTitle) == -1){
+        this.nonExistantAnimes.push(showTitle)
+        console.log('RSS received magnet that\'s not in listanimes:', showTitle);
+      }
 
-          if (magnet.length) {
-            magnet = magnet[0];
-            pushNonDuplicateMagnets(magnet.low, newMagnets.low);
-            pushNonDuplicateMagnets(magnet.medium, newMagnets.medium);
-            pushNonDuplicateMagnets(magnet.high, newMagnets.high);
-            magnet.save((err, savedItem, numAffected) => {
-              numAffected && (console.log('RSS updated:', showTitle, 'id:', newMagnets.showId));
-            });
-          } else {
-            new MagnetsAnime(newMagnets).save();
-            console.log('RSS added a new showId', newMagnets.showId);
-          }
-        });
+      if (magnet == undefined) return;
+
+      if (magnet.length) {
+        magnet = magnet[0];
+        pushNonDuplicateMagnets(magnet.low, newMagnets.low);
+        pushNonDuplicateMagnets(magnet.medium, newMagnets.medium);
+        pushNonDuplicateMagnets(magnet.high, newMagnets.high);
+
+        await (async ()=>{
+          magnet.save((err, savedItem, numAffected) => {
+            numAffected && console.log('RSS updated:', showTitle, 'id:', newMagnets.showId);
+            err && console.log('RSS magnet.save failed:', err);
+            return true;
+          })
+        })();
+
+      } else {
+        await (new MagnetsAnime(newMagnets)).save();
+        console.log('RSS added a new showId', newMagnets.showId);
       }
     }
-
-    let options = Object.assign({}, httpOptions, { path: "/rss.php?res=all" });
-    global.getHtml((data) => httpCallback(data), options);
   }
 
   async downloadContentOfShow(show){

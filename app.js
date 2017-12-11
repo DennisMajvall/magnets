@@ -108,11 +108,14 @@ async function onceConnected() {
   await anime.downloadShowlistContent();
 
   console.log('HorribleSubs loaded, enabling RSS');
-  // anime.readRSS();
-  // setInterval(() => { anime.readRSS(); }, 600000);
+  readRSSAndTrackers();
+  setInterval(() => { readRSSAndTrackers(); }, 600000);
 
-  await addTrackers();
-  // await removeTrackers();
+  async function readRSSAndTrackers(){
+    await anime.readRSS();
+    await addTrackers();
+    await removeTrackers();
+  }
 
   app.listen(46375, function() {
     console.log('Magnets listening on port 46375');
