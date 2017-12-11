@@ -46,12 +46,8 @@ class GetShows {
     let el = $('body');
 
     for (let i = 0; i < magnets.length; ++i){
-      let name = 'magnetframe' + i;
-      let iFrame = `<iframe style="display:none" name="${name}"></iframe>`
-      el.append(iFrame);
-
       let magnetAsLink = 'magnet:?xt=urn:btih:' + magnets[i] + trackersAsString;
-      window.open(magnetAsLink, `${name}`);
+      window.open(magnetAsLink, '_self');
     }
 
     Rest.Login.update((res) => {
