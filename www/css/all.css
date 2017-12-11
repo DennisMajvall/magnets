@@ -1,3 +1,6 @@
+button {
+  cursor: pointer; }
+
 scrollbar {
   max-height: calc(100vh - 110px);
   overflow: hidden;
@@ -99,18 +102,6 @@ a {
 
 #username {
   max-width: 188px; }
-
-#password {
-  color: transparent;
-  text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
-  -webkit-touch-callout: none;
-  -webkit-user-select: none;
-  -khtml-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none; }
-  #password::-moz-selection, #password::selection {
-    background: transparent; }
 
 .user-box .form-group, .user-box #password {
   margin-bottom: 0.5rem; }
