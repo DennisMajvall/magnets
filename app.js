@@ -1,3 +1,4 @@
+process.on('unhandledRejection', error=>console.log('unhandledRejection', error));
 // Npm modules
 var bodyparser = require('body-parser');
 var compression = require('compression');
