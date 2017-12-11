@@ -170,7 +170,7 @@ async function addTrackers(){
   }
 
   for (let t of arrOfTrackers){
-    console.log(t);
+    // console.log(t);
     Trackers.update(
       { name: t },
       { $setOnInsert:{
