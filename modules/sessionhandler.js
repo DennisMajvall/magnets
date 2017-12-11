@@ -39,7 +39,7 @@ module.exports = class Sessionhandler {
     // Set the cookie on the respond object
     var val = this.generateCookieVal();
     res.cookie(this.cookieName,val,{
-      expires: 61*24*60*60,
+      expire: new Date() + 61*24*60*60,
       httpOnly: true, // true = readable by server Only
       path: "/",
       secure: true, // only send over https
