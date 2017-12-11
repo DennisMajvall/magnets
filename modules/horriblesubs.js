@@ -198,7 +198,7 @@ module.exports = class HorribleSubs {
       let magnets = await this.parseMagnets(html, show);
       if (magnets) {
         let saveResult = await (new MagnetsAnime(magnets)).save()
-          .catch(e=>console.log('could not save:', show.title, e))
+          .catch(e=>console.log('could not save:', show.title, e.message))
           .then(()=>console.log('saved:', show.title));
       }
 
