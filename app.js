@@ -109,12 +109,12 @@ async function onceConnected() {
 
   console.log('HorribleSubs loaded, enabling RSS');
   readRSSAndTrackers();
-  setInterval(() => { readRSSAndTrackers(); }, 600000);
+  setInterval(() => { readRSSAndTrackers(); }, 10*60*1000);
 
   async function readRSSAndTrackers(){
     await anime.readRSS();
-    await addTrackers();
-    await removeTrackers();
+    setTimeout(()=> { addTrackers(); }, 10*1000);
+    setTimeout(()=> { removeTrackers(); }, 20*1000);
   }
 
   app.listen(46375, function() {

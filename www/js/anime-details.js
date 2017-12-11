@@ -37,7 +37,12 @@ class AnimeDetails {
           if (trackers && trackers.length){
             let trackersAsString = '&tr=' + trackers.map(t=>t.name).join('&tr=');
 
-            function convertToLink(m) { m.magnet ='magnet:?xt=urn:btih:'+m.magnet+trackersAsString;}
+            function convertToLink(m) {
+
+              m.magnet = m.magnet.split('&tr=')[0];
+              m.magnet = m.magnet.substr(m.magnet.lastIndexOf(':')+1);
+              m.magnet ='magnet:?xt=urn:btih:'+m.magnet+trackersAsString;
+            }
             function sortEp(a,b) { return a.episode < b.episode ? 1 : -1; }
 
             magnet.low.sort(sortEp).map(convertToLink);

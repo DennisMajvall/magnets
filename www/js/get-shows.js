@@ -46,7 +46,9 @@ class GetShows {
     let el = $('body');
 
     for (let i = 0; i < magnets.length; ++i){
-      let magnetAsLink = 'magnet:?xt=urn:btih:' + magnets[i] + trackersAsString;
+      let magnetAsLink = magnets[i].split('&tr=')[0];
+      magnetAsLink = magnetAsLink.substr(magnetAsLink.lastIndexOf(':')+1);
+      magnetAsLink ='magnet:?xt=urn:btih:' + magnetAsLink + trackersAsString;
       window.open(magnetAsLink, '_self');
     }
 

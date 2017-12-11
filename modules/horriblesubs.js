@@ -118,9 +118,9 @@ module.exports = class HorribleSubs {
       let quality = text.match(/\s*\[(\d*p)\]/)[1];
 
       obj.magnet = el.attribs.href;
-      obj.magnet = obj.magnet.split('&tr=')[0];
-      obj.magnet = obj.magnet.substr(obj.magnet.lastIndexOf(':')+1);
-      obj.magnet += el.attribs.href.split('&tr=')[1]; // add trackers.
+      // obj.magnet = obj.magnet.split('&tr=')[0];
+      // obj.magnet = obj.magnet.substr(obj.magnet.lastIndexOf(':')+1);
+      // obj.magnet += el.attribs.href.split('&tr=')[1]; // add trackers.
 
       let matches = text.match(/-\s+(\d+\.?\d?)(\+)?(v\d?)?.*\[.*\]/);
       if (!matches) {
@@ -265,9 +265,9 @@ module.exports = class HorribleSubs {
       if (quality == '720p') qualityIndex = 'medium'
       else if (quality == '1080p') qualityIndex = 'high';
 
-      let rawMagnetName = magnet.split('&tr=')[0];
-      rawMagnetName = rawMagnetName.substr(rawMagnetName.lastIndexOf(':')+1);
-      rawMagnetName += magnet.split('&tr=')[1]; // add trackers.
+      let rawMagnetName = magnet;//.split('&tr=')[0];
+      // rawMagnetName = rawMagnetName.substr(rawMagnetName.lastIndexOf(':')+1);
+      // rawMagnetName += magnet.split('&tr=')[1]; // add trackers.
 
       result[title][qualityIndex].push({
         episode: parseInt(episode, 10),
