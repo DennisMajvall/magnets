@@ -1,0 +1,120 @@
+scrollbar {
+  max-height: calc(100vh - 110px);
+  overflow: hidden;
+  padding-left: 0 !important;
+  padding-right: 0 !important; }
+  scrollbar > div {
+    max-height: calc(100vh - 110px);
+    overflow: auto; }
+  @media screen and (min-width: 768px) {
+    scrollbar {
+      position: relative;
+      height: calc(100vh - 110px);
+      overflow: hidden;
+      padding-left: 15px !important;
+      padding-right: 15px !important; }
+      scrollbar > div {
+        position: absolute !important;
+        top: 0;
+        left: 15px;
+        right: -17px;
+        max-height: calc(100vh - 110px);
+        overflow-y: scroll;
+        border-right: 5px solid transparent; }
+      scrollbar:last-child > div {
+        padding-right: 15px; } }
+
+h2 {
+  margin-top: 0;
+  margin-bottom: 10px; }
+
+a {
+  outline: 0; }
+
+.hidden {
+  display: none; }
+
+.pointer {
+  cursor: pointer; }
+
+/* Let's get this party started */
+::-webkit-scrollbar {
+  width: 6px; }
+
+/* Track */
+::-webkit-scrollbar-track {
+  border-radius: 7px; }
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  border-radius: 7px;
+  background: rgba(35, 35, 35, 0.2); }
+
+.anime-details .description {
+  overflow: auto;
+  border-radius: 8px;
+  background-color: #f5f6ff;
+  padding: 8px 15px; }
+  .anime-details .description:hover {
+    background-color: #f0f0ff; }
+  .anime-details .description.minimized {
+    overflow: hidden;
+    max-height: 190px; }
+    .anime-details .description.minimized img {
+      height: 175px; }
+  .anime-details .description p {
+    margin-bottom: 0.5rem;
+    line-height: 1.4; }
+  .anime-details .description .img-wrapper {
+    float: right;
+    max-width: 60%;
+    margin-left: 15px; }
+    .anime-details .description .img-wrapper img {
+      max-width: 100%;
+      max-height: 100%; }
+
+.thumbnail {
+  position: relative; }
+  .thumbnail .img-wrapper {
+    position: relative;
+    height: 100%;
+    background-color: black; }
+  .thumbnail img {
+    max-width: 100%; }
+  .thumbnail:hover span {
+    background-color: rgba(255, 255, 255, 0.9); }
+  .thumbnail span {
+    transition: 0.1s;
+    position: absolute;
+    text-align: center;
+    padding-bottom: 2px;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: rgba(255, 255, 255, 0.8); }
+
+.header {
+  height: 110px;
+  overflow-y: hidden; }
+
+#username {
+  max-width: 188px; }
+
+#password {
+  color: transparent;
+  text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none; }
+  #password::-moz-selection, #password::selection {
+    background: transparent; }
+
+.user-box .form-group, .user-box #password {
+  margin-bottom: 0.5rem; }
+
+.user-box #login {
+  line-height: 0;
+  max-height: 38px; }
