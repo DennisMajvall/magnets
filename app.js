@@ -1,10 +1,9 @@
-process.on('unhandledRejection', error=>console.log('unhandledRejection', error));
+process.on('unhandledRejection', console.log);
 // Npm modules
 var bodyparser = require('body-parser');
 var compression = require('compression');
 var cookieparser = require('cookie-parser');
 var express = require('express');
-var http = require('http')
 var util = require('util');
 var mongoose = require('mongoose');
 var sha1 = require('sha1');
@@ -77,32 +76,6 @@ app.use(express.static('www'));
 // Start Sass
 new Sass(config.sass);
 
-global.getHtml = function (cb, options, errCb) {
-
-  function doRequest(obj, func, errCb) {
-    http.request(options, function(response) {
-      let content = "";
-      response.setEncoding("utf8");
-      response.on("error", (err) => console.log(err));
-      response.on("data", (chunk) => { content += chunk; });
-      response.on("end", () => {
-        if(response.statusCode == 200) {
-          cb(content);
-        } else if (response.statusCode == 301 && numRedirectsLeft-- > 0) {
-          options.path = response.headers.location;
-          console.log('redirected to', options.path);
-          doRequest(cb, options);
-        } else {
-          console.log('HTTP statusCode:', response.statusCode);
-          errCb && errCb();
-        }
-      });
-    }).end();
-  }
-
-  let numRedirectsLeft = 3;
-  doRequest(cb, options, errCb);
-}
 
 app.get('/get-shows/:username/:password', getshows);
 app.get('/get-shows', getshows);
@@ -125,28 +98,29 @@ mongoose.connect('mongodb://127.0.0.1/magnets');
 mongoose.connection.once('open', onceConnected);
 mongoose.connection.on('error', () => console.log('Error connecting to mongoDB'));
 
-function onceConnected() {
-  // addTrackers();
-  // removeTrackers();
+async function onceConnected() {
 
   var anime = new HorribleSubs();
 
-  Promise.resolve()
-  .then(()=> { return anime.downloadShowlist() })
-  .then(()=> { return anime.downloadShowlistIds() })
-  .then(()=> { return anime.downloadMagnets() })
-  .then(()=> { return anime.downloadShowlistContent() })
-  .then(()=> { console.log('HorribleSubs loaded'); })
-  .then(() => {
-    console.log('HorribleSubs RSS enabled');
-    anime.readRSS();
-    setInterval(() => { anime.readRSS(); }, 600000);
-  })
-  .then(() => {
-    app.listen(3000, function() {
-      console.log('Express app listening on port 3000');
-    });
+  await anime.downloadShowlist();
+  await anime.downloadShowlistIds();
+  await anime.downloadMagnets();
+  await anime.downloadShowlistContent();
+
+  console.log('HorribleSubs loaded, enabling RSS');
+  readRSSAndTrackers();
+  setInterval(() => { readRSSAndTrackers(); }, 600000);
+
+  async function readRSSAndTrackers(){
+    await anime.readRSS();
+    await addTrackers();
+    await removeTrackers();
+  }
+
+  app.listen(46375, function() {
+    console.log('Magnets listening on port 46375');
   });
+
 }
 
 async function removeTrackers(){
@@ -195,7 +169,6 @@ async function addTrackers(){
     everyMagnet(m, 'low');
   }
 
-  console.log('trackers found');
   for (let t of arrOfTrackers){
     console.log(t);
     Trackers.update(
