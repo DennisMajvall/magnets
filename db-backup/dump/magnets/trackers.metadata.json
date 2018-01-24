@@ -1,0 +1,1 @@
+{"options":{},"indexes":[{"v":1,"key":{"_id":1},"name":"_id_","ns":"magnets.trackers"},{"v":1,"unique":true,"key":{"name":1},"name":"name_1","ns":"magnets.trackers","background":true}]}
