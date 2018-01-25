@@ -75,7 +75,8 @@ module.exports = class HorribleSubs {
   parseShowlistThumbnail(input) {
     if (input.length < 100) return null;
     let $ = cheerio.load(input)
-    return 'https://' + $('.entry-content .series-image img').attr('src').replace(/https?:\/\//g, '');
+    let imgSrc = $('.entry-content .series-image img').attr('src') || '';
+    return 'https://' + imgSrc.replace(/https?:\/\//g, '');
   }
 
   parseMagnetBatch(input, show){
