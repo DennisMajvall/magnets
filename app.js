@@ -44,9 +44,6 @@ for(let name of [...schemas, ...restSchemas]) {
   global[name] = mongoose.fromClass(require(pathName));
 }
 
-// mongo push was deprecated in 3.6, this fixes it.
-mongoose.plugin(schema => { schema.options.usePushEach = true });
-
 var app = express();
 
 app.use(bodyparser.json({ limit: '5mb' }));
