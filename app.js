@@ -117,8 +117,8 @@ async function onceConnected() {
     setTimeout(()=> { removeTrackers(); }, 20*1000);
   }
 
-  app.listen(46375, function() {
-    console.log('Magnets listening on port 46375');
+  app.listen(4001, function() {
+    console.log('Magnets listening on port 4001');
   });
 
 }
