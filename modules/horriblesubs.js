@@ -198,8 +198,9 @@ module.exports = class HorribleSubs {
 
       let magnets = await this.parseMagnets(html, show);
       if (magnets) {
-        let saveResult = await (new MagnetsAnime(magnets)).save()
-          .catch(e => console.log('could not save:', show.title, e.message))
+        let saveResult = await (new MagnetsAnime(magnets))
+          .save()
+          .catch(e => console.warn('could not save:', show.title, e.message))
           .then(() => console.log('saved:', show.title));
       }
 
@@ -328,7 +329,9 @@ module.exports = class HorribleSubs {
         })();
 
       } else {
-        await (new MagnetsAnime(newMagnets)).save();
+        await (new MagnetsAnime(newMagnets))
+          .save()
+          .catch(e => console.warn('could not create:', showTitle, 'newMagnets:', newMagnets));
         console.log('RSS added a new showId', newMagnets.showId);
       }
     }
