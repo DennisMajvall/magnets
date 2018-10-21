@@ -17,7 +17,7 @@ module.exports = class HorribleSubs {
   }
 
   async downloadUrl(url) {
-    let scraper = await scraperjs.StaticScraper.create(url);
+    let scraper = scraperjs.StaticScraper.create(url);
     let html = await scraper.scrape(($) => { return $.html(); });
     console.log('html:', html);
     return html;
