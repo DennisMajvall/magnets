@@ -4,36 +4,36 @@ class GetShows {
     WATCH('get-shows', this.startDownload, this);
   }
 
-  startDownload(){
+  startDownload() {
     if (this.inProgress) return;
     this.inProgress = true;
 
     $.ajax({
       url: '/get-shows',
-      beforeSend: function(xhr) {
+      beforeSend: function (xhr) {
         if (xhr.overrideMimeType)
           xhr.overrideMimeType("application/json");
       },
       type: "GET",
       dataType: "json",
-      success: (data)=>{ this.onShowsDownloaded(data) },
-      error: (error)=>{
+      success: (data) => { this.onShowsDownloaded(data) },
+      error: (error) => {
         this.inProgress = false;
         console.log(error.responseJSON);
       }
     });
   }
 
-  onShowsDownloaded(magnets){
-    if (!magnets || !magnets.length){
+  onShowsDownloaded(magnets) {
+    if (!magnets || !magnets.length) {
       this.inProgress = false;
       return;
     }
 
-    Rest.Trackers.find('find/{isAnime: true}', (trackers) => {
-      if (trackers && trackers.length){
-        let trackersAsString = '&tr=' + trackers.map(t=>t.name).join('&tr=');
-        this.createMagnetLinks(magnets, trackersAsString);
+    Rest.Trackers.find('find/{isAnime: true}', async (trackers) => {
+      if (trackers && trackers.length) {
+        let trackersAsString = '&tr=' + trackers.map(t => t.name).join('&tr=');
+        await this.createMagnetLinks(magnets, trackersAsString);
       } else {
         console.log('no trackers found');
       }
@@ -42,14 +42,20 @@ class GetShows {
     });
   }
 
-  createMagnetLinks(magnets, trackersAsString){
+  async createMagnetLinks(magnets, trackersAsString) {
     let el = $('body');
+    let w = window.open('/', '_blank');
 
-    for (let i = 0; i < magnets.length; ++i){
+    function sleep(ms = 0) {
+      return new Promise(r => setTimeout(r, ms));
+    }
+
+    for (let i = 0; i < magnets.length; ++i) {
       let magnetAsLink = magnets[i].split('&tr=')[0];
-      magnetAsLink = magnetAsLink.substr(magnetAsLink.lastIndexOf(':')+1);
-      magnetAsLink ='magnet:?xt=urn:btih:' + magnetAsLink + trackersAsString;
-      window.open(magnetAsLink, '_self');
+      magnetAsLink = magnetAsLink.substr(magnetAsLink.lastIndexOf(':') + 1);
+      magnetAsLink = 'magnet:?xt=urn:btih:' + magnetAsLink + trackersAsString;
+      w = w.open(magnetAsLink, '_self');
+      await sleep(1000);
     }
 
     Rest.Login.update((res) => {
