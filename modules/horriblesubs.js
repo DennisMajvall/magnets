@@ -244,7 +244,6 @@ module.exports = class HorribleSubs {
       // part 3 is just the spaces/dashes between 2 and 4
       let episode = regexParts[4]; // Ex '37'
       let quality = regexParts[5]; // Ex '1080p'
-      console.log('new magnet:', 'regexParts', regexParts, 'title', title, 'season', season, 'episode', episode, 'quality', quality);
 
       let titleWithSeason = title + ' ' + season;
 
