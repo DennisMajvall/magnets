@@ -229,7 +229,7 @@ module.exports = class HorribleSubs {
     let result = {};
 
     async function onIteration(i, el) {
-      let magnet = $(el).find('link')[0].next.data;
+      let magnet = $(el).find('link').textContent;
       let fullTitle = $(el).find('title').text();
 
       let regexParts = fullTitle.match(/\]\s(.*[^S\d])(S*\d*)( - |[\s]+\(\d*-)(\d+)+.*\[(\d*p)\]/);
