@@ -4,7 +4,7 @@ const scraperjs = require('scraperjs');
 const timeoutMs = 10000;
 const timeoutIdsMs = timeoutMs * 2;
 const timeoutMagnetsMs = timeoutMs * 3;
-const website = 'http://horriblesubs.info';
+const website = 'https://horriblesubs.info';
 
 function sleep(ms = 0) {
   return new Promise(r => setTimeout(r, ms));
